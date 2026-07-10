@@ -167,3 +167,43 @@ path="/mnt/data/style.css"
 Path(path).write_text(css,encoding="utf-8")
 print(path)
 
+.hero-buttons{
+display:flex;
+gap:20px;
+margin-top:40px;
+flex-wrap:wrap;
+justify-content:center;
+}
+
+.secondary{
+background:transparent;
+color:#00d9ff;
+border:2px solid #00d9ff;
+}
+
+.secondary:hover{
+background:#00d9ff;
+color:#000;
+}
+
+.stats{
+margin-top:80px;
+display:flex;
+justify-content:center;
+gap:70px;
+flex-wrap:wrap;
+}
+
+.stats h2{
+font-size:42px;
+color:#00d9ff;
+}
+
+.stats span{
+color:#b8c5d6;
+font-size:18px;
+}
+
+.stats div{
+text-align:center;
+}
