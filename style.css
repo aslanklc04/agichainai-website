@@ -5,11 +5,13 @@
     scroll-behavior:smooth;
     font-family:Arial, Helvetica, sans-serif;
 }
-
 body{
-    background:#050816;
-    color:#ffffff;
+    margin:0;
+    color:#fff;
     overflow-x:hidden;
+    background:
+        radial-gradient(circle at top,#1d4ed8 0%,#0b1120 30%,#050816 70%,#02040a 100%);
+    background-attachment:fixed;
 }
 
 nav{
@@ -52,14 +54,14 @@ nav ul li a:hover{
 }
 
 .hero{
-    height:100vh;
+    min-height:100vh;
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
-    flex-direction:column;
     text-align:center;
-    background:
-    radial-gradient(circle at top,#10254d,#050816);
+    padding:120px 20px;
+    background:transparent;
 }
 
 .hero h1{
