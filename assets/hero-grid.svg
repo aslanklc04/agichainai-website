@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Grid pattern -->
+    <pattern id="gridPattern" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M 56 0 L 0 0 0 56" fill="none" stroke="#00d8ff" stroke-width="1" opacity="0.14"/>
+    </pattern>
+
+    <!-- Radial fade mask: grid dissolves toward the edges -->
+    <radialGradient id="fadeGrad" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <mask id="fadeMask">
+      <rect width="1200" height="800" fill="url(#fadeGrad)"/>
+    </mask>
+
+    <!-- Glow accents -->
+    <radialGradient id="glowCyan" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d8ff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#00d8ff" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="glowPurple" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c4dff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#7c4dff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Grid with fade mask -->
+  <rect width="1200" height="800" fill="url(#gridPattern)" mask="url(#fadeMask)"/>
+
+  <!-- Glow orbs -->
+  <ellipse cx="250" cy="160" rx="420" ry="320" fill="url(#glowCyan)"/>
+  <ellipse cx="980" cy="640" rx="400" ry="300" fill="url(#glowPurple)"/>
+
+  <!-- Accent intersection dots -->
+  <g fill="#00d8ff">
+    <circle cx="336" cy="280" r="2.5" opacity="0.6"/>
+    <circle cx="616" cy="168" r="2" opacity="0.5"/>
+    <circle cx="840" cy="336" r="2.5" opacity="0.6"/>
+    <circle cx="448" cy="448" r="2" opacity="0.4"/>
+    <circle cx="728" cy="504" r="2.5" opacity="0.5"/>
+  </g>
+  <g fill="#30ffb2">
+    <circle cx="504" cy="224" r="2" opacity="0.5"/>
+    <circle cx="896" cy="448" r="2" opacity="0.45"/>
+    <circle cx="280" cy="392" r="2" opacity="0.4"/>
+  </g>
+</svg>
