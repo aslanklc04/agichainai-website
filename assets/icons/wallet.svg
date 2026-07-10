@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="icoWallet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d8ff"/>
+      <stop offset="100%" stop-color="#7c4dff"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#icoWallet)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 16 C8 13.8 9.8 12 12 12 L34 12"/>
+    <path d="M8 16 L8 34 C8 36.2 9.8 38 12 38 L38 38 C39.7 38 41 36.7 41 35 L41 20 C41 18.3 39.7 17 38 17 L10.5 17 C9.1 17 8 15.9 8 14.5 Z"/>
+    <path d="M32 24 L41 24 L41 31 L32 31 C30 31 28.5 29.4 28.5 27.5 C28.5 25.6 30 24 32 24 Z"/>
+  </g>
+  <circle cx="33" cy="27.5" r="2.2" fill="#30ffb2"/>
+</svg>
