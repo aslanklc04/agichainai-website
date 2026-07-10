@@ -1,193 +1,468 @@
-from pathlib import Path
-html="""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AGIChainAI</title>
-<meta name="description" content="Building the decentralized infrastructure for the AGI era.">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AGIChainAI is building decentralized infrastructure for the AGI era — AI agents, developer SDK, marketplace, wallet and blockchain in one open ecosystem.">
+  <meta name="keywords" content="AGIChainAI, AGI, artificial general intelligence, decentralized AI, blockchain, AI agents, Web3, AI token, developer SDK">
+  <meta name="author" content="AGIChainAI">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.agichainai.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.agichainai.com/">
+  <meta property="og:title" content="AGIChainAI — The Infrastructure for the AGI Era">
+  <meta property="og:description" content="Decentralized infrastructure for artificial general intelligence. AI agents, SDK, marketplace, wallet and blockchain in one open ecosystem.">
+  <meta property="og:image" content="https://www.agichainai.com/images/og-image.png">
+  <meta property="og:site_name" content="AGIChainAI">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AGIChainAI — The Infrastructure for the AGI Era">
+  <meta name="twitter:description" content="Decentralized infrastructure for artificial general intelligence.">
+  <meta name="twitter:image" content="https://www.agichainai.com/images/og-image.png">
+
+  <!-- Icons & Manifest -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#05070d">
+  <meta name="msapplication-config" content="browserconfig.xml">
+
+  <title>AGIChainAI — The Infrastructure for the AGI Era</title>
+
+  <!-- Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "AGIChainAI",
+    "url": "https://www.agichainai.com",
+    "logo": "https://www.agichainai.com/assets/logo.svg",
+    "description": "Decentralized infrastructure for the AGI era.",
+    "sameAs": [
+      "https://github.com/agichainai",
+      "https://x.com/agichainai",
+      "https://t.me/agichainai"
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav>
-<div class="logo">AGIChainAI</div>
-<ul>
-<li><a href="#about">About</a></li>
-<li><a href="#mission">Mission</a></li>
-<li><a href="#ecosystem">Ecosystem</a></li>
-<li><a href="#roadmap">Roadmap</a></li>
-<li><a href="#contact">Contact</a></li>
-</ul>
-</nav>
+  <!-- ==================== NAVBAR ==================== -->
+  <header class="navbar" id="navbar">
+    <nav class="nav-container" aria-label="Main navigation">
+      <a href="#home" class="nav-logo" aria-label="AGIChainAI home">
+        <img src="assets/logo.svg" alt="AGIChainAI logo" width="36" height="36">
+        <span class="nav-logo-text">AGIChain<span class="logo-accent">AI</span></span>
+      </a>
 
-<header class="hero">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navMenu">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </button>
 
-<h1>The Infrastructure for the AGI Era</h1>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#home" class="nav-link active">Home</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#mission" class="nav-link">Mission</a></li>
+        <li><a href="#ecosystem" class="nav-link">Ecosystem</a></li>
+        <li><a href="#tokenomics" class="nav-link">Tokenomics</a></li>
+        <li><a href="#roadmap" class="nav-link">Roadmap</a></li>
+        <li><a href="pages/whitepaper.html" class="nav-link">Whitepaper</a></li>
+        <li><a href="pages/faq.html" class="nav-link">FAQ</a></li>
+        <li><a href="#contact" class="nav-link nav-link-cta">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
 
-<p>
-Building the world's decentralized artificial general intelligence ecosystem powered by blockchain technology.
-</p>
+  <main id="main">
 
-<div class="hero-buttons">
+    <!-- ==================== HERO ==================== -->
+    <section class="hero" id="home">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="hero-grid"></div>
+        <div class="hero-glow hero-glow-1"></div>
+        <div class="hero-glow hero-glow-2"></div>
+        <canvas id="particles" class="hero-particles"></canvas>
+      </div>
 
-<a href="#ecosystem" class="btn">
-Launch Ecosystem
-</a>
+      <div class="hero-content">
+        <div class="hero-badge reveal">
+          <span class="badge-dot" aria-hidden="true"></span>
+          Building the open intelligence layer
+        </div>
 
-<a href="#roadmap" class="btn secondary">
-Read Roadmap
-</a>
+        <h1 class="hero-title reveal">
+          The Infrastructure<br>
+          for the <span class="gradient-text" id="typingTarget">AGI Era</span>
+        </h1>
 
-</div>
+        <p class="hero-subtitle reveal">
+          AGIChainAI is an open, decentralized ecosystem where artificial
+          intelligence, blockchain and developers converge — AI agents,
+          a developer SDK, a marketplace and a native wallet, all in one network.
+        </p>
 
-<div class="stats">
+        <div class="hero-actions reveal">
+          <a href="#ecosystem" class="btn btn-primary">Launch Ecosystem</a>
+          <a href="pages/whitepaper.html" class="btn btn-secondary">Read Whitepaper</a>
+        </div>
 
-<div>
-<h2>6+</h2>
-<span>Core Products</span>
-</div>
+        <div class="hero-stats reveal" aria-label="Key statistics">
+          <div class="stat">
+            <span class="stat-number" data-count="6">0</span>
+            <span class="stat-label">Core Products</span>
+          </div>
+          <div class="stat-divider" aria-hidden="true"></div>
+          <div class="stat">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">AI Availability</span>
+          </div>
+          <div class="stat-divider" aria-hidden="true"></div>
+          <div class="stat">
+            <span class="stat-number"><span data-count="100">0</span>%</span>
+            <span class="stat-label">Decentralized</span>
+          </div>
+        </div>
+      </div>
 
-<div>
-<h2>AI</h2>
-<span>Powered</span>
-</div>
+      <a href="#about" class="scroll-indicator" aria-label="Scroll to About section">
+        <span class="scroll-indicator-wheel" aria-hidden="true"></span>
+      </a>
+    </section>
 
-<div>
-<h2>24/7</h2>
-<span>Innovation</span>
-</div>
+    <!-- ==================== ABOUT ==================== -->
+    <section class="section" id="about">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">About</span>
+          <h2 class="section-title">What is AGIChainAI?</h2>
+          <p class="section-desc">
+            A decentralized infrastructure project designed for the next
+            generation of intelligence — built openly, owned by its community.
+          </p>
+        </div>
 
-</div>
+        <div class="about-grid">
+          <article class="glass-card reveal">
+            <h3>Why AGIChainAI exists</h3>
+            <p>
+              Today's most powerful AI systems are controlled by a handful of
+              corporations. Access, pricing and rules are decided behind closed
+              doors. AGIChainAI exists to build an alternative: an open network
+              where intelligence is a shared public resource — transparent,
+              verifiable and accessible to everyone.
+            </p>
+          </article>
 
-</header>
+          <article class="glass-card reveal">
+            <h3>AI vs AGI</h3>
+            <p>
+              Narrow AI solves one task — translation, image recognition,
+              recommendation. AGI (Artificial General Intelligence) refers to
+              systems that can learn, reason and adapt across many domains,
+              the way humans do. The world is moving toward AGI, and the
+              infrastructure it runs on will define who benefits from it.
+            </p>
+          </article>
 
-<section id="about">
-<h2 class="title">About AGIChainAI</h2>
-<div class="card">
-<p>AGIChainAI is an ecosystem focused on combining Artificial General Intelligence, decentralized infrastructure, AI agents, blockchain technology and digital assets into one open platform for developers, businesses and communities.</p>
-</div>
-</section>
+          <article class="glass-card reveal">
+            <h3>Why decentralized intelligence matters</h3>
+            <p>
+              If AGI is centralized, its power is centralized too.
+              A decentralized approach distributes computation, governance and
+              value across a global network — no single point of control,
+              no single point of failure, and full transparency through
+              on-chain verification.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-<section id="mission">
-<h2 class="title">Mission</h2>
-<div class="card">
-<p>To democratize Artificial General Intelligence by creating secure, transparent and decentralized AI infrastructure accessible to everyone.</p>
-</div>
-</section>
+    <!-- ==================== MISSION & VISION ==================== -->
+    <section class="section section-alt" id="mission">
+      <div class="container">
+        <div class="mv-grid">
+          <div class="mv-block reveal">
+            <span class="section-eyebrow">Mission</span>
+            <h2 class="section-title">Open intelligence for everyone</h2>
+            <p>
+              Our mission is to build the decentralized infrastructure that
+              makes advanced AI accessible, verifiable and community-governed.
+              We connect developers, researchers and users in a single open
+              network where intelligence is created, shared and rewarded fairly.
+            </p>
+          </div>
 
-<section id="vision">
-<h2 class="title">Vision</h2>
-<div class="card">
-<p>To become one of the world's leading decentralized AGI ecosystems powering the next generation of intelligent applications.</p>
-</div>
-</section>
+          <div class="mv-block reveal" id="vision">
+            <span class="section-eyebrow">Vision</span>
+            <h2 class="section-title">The intelligence layer of Web3</h2>
+            <p>
+              We envision a future where AGI-class systems run on open,
+              distributed networks — where anyone can deploy an AI agent,
+              audit how it works, and participate in the value it creates.
+              AGIChainAI aims to be the foundational layer that future is
+              built on.
+            </p>
+          </div>
+        </div>
 
-<section id="ecosystem">
+        <div class="values-grid" id="values">
+          <div class="value-card reveal"><h4>Innovation</h4><p>We push the frontier of AI × blockchain research and ship it as usable products.</p></div>
+          <div class="value-card reveal"><h4>Transparency</h4><p>Open code, open governance, on-chain records. Nothing hidden.</p></div>
+          <div class="value-card reveal"><h4>Security</h4><p>Audited contracts, defense-in-depth architecture and responsible disclosure.</p></div>
+          <div class="value-card reveal"><h4>Decentralization</h4><p>No single owner. The network is run and governed by its participants.</p></div>
+          <div class="value-card reveal"><h4>Privacy</h4><p>User data belongs to users. Privacy-preserving computation by design.</p></div>
+          <div class="value-card reveal"><h4>Open Source</h4><p>Core protocols and tools are public, forkable and community-driven.</p></div>
+        </div>
+      </div>
+    </section>
 
-<h2 class="title">AGIChainAI Ecosystem</h2>
+    <!-- ==================== ECOSYSTEM ==================== -->
+    <section class="section" id="ecosystem">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Ecosystem</span>
+          <h2 class="section-title">One network. Six core products.</h2>
+          <p class="section-desc">
+            Every product in the AGIChainAI ecosystem is powered by the same
+            decentralized network and the same native token.
+          </p>
+        </div>
 
-<p class="subtitle">
-A complete decentralized infrastructure designed for the AGI era.
-</p>
+        <div class="eco-grid">
+          <article class="eco-card glass-card reveal">
+            <img src="assets/icons/ai.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>AGI Chat</h3>
+            <p>A conversational AI interface running on distributed compute — private, censorship-resistant and available 24/7.</p>
+          </article>
 
-<div class="grid">
+          <article class="eco-card glass-card reveal">
+            <img src="assets/icons/blockchain.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>AI Agents</h3>
+            <p>Autonomous on-chain agents that can execute tasks, trade, analyze data and interact with smart contracts.</p>
+          </article>
 
-<div class="card">
+          <article class="eco-card glass-card reveal">
+            <img src="assets/icons/sdk.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Developer SDK</h3>
+            <p>Build AI-powered dApps with a clean API — model access, agent orchestration and on-chain payments included.</p>
+          </article>
 
-<h3>🧠 AGI Chat</h3>
+          <article class="eco-card glass-card reveal">
+            <img src="assets/icons/marketplace.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Marketplace</h3>
+            <p>A decentralized marketplace for AI models, agents, datasets and compute — creators earn directly from usage.</p>
+          </article>
 
-<p>
-A next-generation conversational AI platform designed for developers, businesses and individuals.
-</p>
+          <article class="eco-card glass-card reveal">
+            <img src="assets/icons/token.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Blockchain</h3>
+            <p>A high-throughput chain optimized for AI workloads: verifiable inference, agent identity and micro-payments.</p>
+          </article>
 
-</div>
+          <article class="eco-card glass-card reveal">
+            <img src="assets/icons/wallet.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Wallet</h3>
+            <p>A non-custodial wallet for the AGI economy — manage tokens, agents and subscriptions from one interface.</p>
+          </article>
+        </div>
 
-<div class="card">
+        <div class="eco-more reveal">
+          <p>Plus: <strong>Cloud</strong> · <strong>Node Network</strong> · <strong>API</strong> · <strong>Research</strong></p>
+          <a href="pages/ecosystem.html" class="btn btn-secondary">Explore the full ecosystem</a>
+        </div>
+      </div>
+    </section>
 
-<h3>🤖 AI Agents</h3>
+    <!-- ==================== TOKENOMICS ==================== -->
+    <section class="section section-alt" id="tokenomics">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Tokenomics</span>
+          <h2 class="section-title">The AGIC Token</h2>
+          <p class="section-desc">
+            AGIC is the native utility token that powers computation,
+            governance and rewards across the entire network.
+          </p>
+        </div>
 
-<p>
-Autonomous AI agents capable of research, coding, automation and decision making.
-</p>
+        <div class="tokenomics-grid">
+          <div class="token-chart-wrap reveal">
+            <div class="token-chart" role="img" aria-label="Token allocation chart: Community and Ecosystem 40 percent, Staking Rewards 20 percent, Treasury 15 percent, Team 15 percent, Liquidity 10 percent">
+              <div class="token-chart-center">
+                <span class="token-chart-total">1B</span>
+                <span class="token-chart-label">Total Supply</span>
+              </div>
+            </div>
+            <ul class="token-legend">
+              <li><span class="legend-dot dot-1" aria-hidden="true"></span>Community &amp; Ecosystem — 40%</li>
+              <li><span class="legend-dot dot-2" aria-hidden="true"></span>Staking Rewards — 20%</li>
+              <li><span class="legend-dot dot-3" aria-hidden="true"></span>Treasury — 15%</li>
+              <li><span class="legend-dot dot-4" aria-hidden="true"></span>Team (vested) — 15%</li>
+              <li><span class="legend-dot dot-5" aria-hidden="true"></span>Liquidity — 10%</li>
+            </ul>
+          </div>
 
-</div>
+          <div class="token-utility reveal">
+            <div class="utility-item"><h4>Utility</h4><p>Pay for AI inference, agent execution, API calls and marketplace purchases.</p></div>
+            <div class="utility-item"><h4>Governance</h4><p>Token holders vote on protocol upgrades, treasury spending and network parameters.</p></div>
+            <div class="utility-item"><h4>Staking</h4><p>Stake AGIC to secure the network and earn a share of protocol rewards.</p></div>
+            <div class="utility-item"><h4>Treasury</h4><p>A community-controlled treasury funds grants, audits and long-term development.</p></div>
+          </div>
+        </div>
 
-<div class="card">
+        <div class="section-cta reveal">
+          <a href="pages/tokenomics.html" class="btn btn-secondary">Full tokenomics breakdown</a>
+        </div>
+      </div>
+    </section>
 
-<h3>⚡ AGI Token</h3>
+    <!-- ==================== ROADMAP ==================== -->
+    <section class="section" id="roadmap">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Roadmap</span>
+          <h2 class="section-title">Where we're headed</h2>
+        </div>
 
-<p>
-The native utility token powering governance, staking, payments and ecosystem incentives.
-</p>
+        <ol class="timeline">
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Q3 2026</span>
+            <div class="timeline-card glass-card">
+              <h3>Foundation</h3>
+              <p>Official website launch, brand identity, community channels.</p>
+            </div>
+          </li>
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Q4 2026</span>
+            <div class="timeline-card glass-card">
+              <h3>Whitepaper &amp; Community</h3>
+              <p>Whitepaper v1 release, ambassador program, developer community growth.</p>
+            </div>
+          </li>
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Q1 2027</span>
+            <div class="timeline-card glass-card">
+              <h3>Testnet, Token &amp; Wallet</h3>
+              <p>Public testnet, AGIC token generation event, wallet beta.</p>
+            </div>
+          </li>
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Q2 2027</span>
+            <div class="timeline-card glass-card">
+              <h3>Marketplace</h3>
+              <p>AI model &amp; agent marketplace launch with creator payouts.</p>
+            </div>
+          </li>
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Q3 2027</span>
+            <div class="timeline-card glass-card">
+              <h3>Mainnet</h3>
+              <p>Mainnet launch with verifiable inference and node staking.</p>
+            </div>
+          </li>
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Q4 2027</span>
+            <div class="timeline-card glass-card">
+              <h3>DAO</h3>
+              <p>Full transition to community governance through the AGIChainAI DAO.</p>
+            </div>
+          </li>
+        </ol>
 
-</div>
+        <div class="section-cta reveal">
+          <a href="pages/roadmap.html" class="btn btn-secondary">View detailed roadmap</a>
+        </div>
+      </div>
+    </section>
 
-<div class="card">
+    <!-- ==================== CONTACT ==================== -->
+    <section class="section section-alt" id="contact">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Contact</span>
+          <h2 class="section-title">Join the network</h2>
+          <p class="section-desc">
+            Questions, partnerships or contributions — we'd love to hear from you.
+          </p>
+        </div>
 
-<h3>👛 AGI Wallet</h3>
+        <div class="contact-grid reveal">
+          <a href="mailto:hello@agichainai.com" class="contact-card glass-card">
+            <h4>Email</h4><p>hello@agichainai.com</p>
+          </a>
+          <a href="https://github.com/agichainai" class="contact-card glass-card" rel="noopener" target="_blank">
+            <h4>GitHub</h4><p>github.com/agichainai</p>
+          </a>
+          <a href="https://t.me/agichainai" class="contact-card glass-card" rel="noopener" target="_blank">
+            <h4>Telegram</h4><p>t.me/agichainai</p>
+          </a>
+          <a href="https://x.com/agichainai" class="contact-card glass-card" rel="noopener" target="_blank">
+            <h4>X (Twitter)</h4><p>@agichainai</p>
+          </a>
+          <a href="https://www.linkedin.com/company/agichainai" class="contact-card glass-card" rel="noopener" target="_blank">
+            <h4>LinkedIn</h4><p>/company/agichainai</p>
+          </a>
+          <a href="https://discord.gg/agichainai" class="contact-card glass-card" rel="noopener" target="_blank">
+            <h4>Discord</h4><p>discord.gg/agichainai</p>
+          </a>
+        </div>
+      </div>
+    </section>
 
-<p>
-Secure identity, digital assets and Web3 authentication in one wallet.
-</p>
+  </main>
 
-</div>
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#home" class="nav-logo" aria-label="AGIChainAI home">
+          <img src="assets/logo.svg" alt="AGIChainAI logo" width="32" height="32">
+          <span class="nav-logo-text">AGIChain<span class="logo-accent">AI</span></span>
+        </a>
+        <p class="footer-tagline">The infrastructure for the AGI era.</p>
+      </div>
 
-<div class="card">
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <div class="footer-col">
+          <h5>Product</h5>
+          <a href="#ecosystem">Ecosystem</a>
+          <a href="#tokenomics">Tokenomics</a>
+          <a href="#roadmap">Roadmap</a>
+        </div>
+        <div class="footer-col">
+          <h5>Resources</h5>
+          <a href="pages/whitepaper.html">Whitepaper</a>
+          <a href="pages/faq.html">FAQ</a>
+          <a href="https://github.com/agichainai" rel="noopener" target="_blank">GitHub</a>
+        </div>
+        <div class="footer-col">
+          <h5>Legal</h5>
+          <a href="pages/privacy.html">Privacy Policy</a>
+          <a href="pages/terms.html">Terms of Use</a>
+        </div>
+      </nav>
+    </div>
 
-<h3>🛒 Marketplace</h3>
+    <div class="container footer-bottom">
+      <p>© 2026 AGIChainAI. All rights reserved.</p>
+      <p class="footer-disclaimer">
+        AGIC is a utility token. Nothing on this site constitutes financial advice.
+      </p>
+    </div>
+  </footer>
 
-<p>
-Buy, sell and deploy AI models, agents and digital services.
-</p>
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
 
-</div>
-
-<div class="card">
-
-<h3>💻 Developer SDK</h3>
-
-<p>
-A complete toolkit allowing developers to build intelligent decentralized applications.
-</p>
-
-</div>
-
-</div>
-
-</section>
-
-<section id="roadmap">
-<h2 class="title">Roadmap</h2>
-<div class="card">
-<p><strong>2026</strong></p>
-<ul>
-<li>Official Website</li>
-<li>Community Launch</li>
-<li>Whitepaper</li>
-<li>Token Development</li>
-<li>AI Platform MVP</li>
-<li>Developer SDK</li>
-</ul>
-</div>
-</section>
-
-<section id="contact">
-<h2 class="title">Contact</h2>
-<div class="card">
-<p>Email: contact@agichainai.com</p>
-<p>Website: https://agichainai.com</p>
-</div>
-</section>
-
-<footer>
-<p>© 2026 AGIChainAI. All Rights Reserved.</p>
-</footer>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
-</html>"""
-path="/mnt/data/index.html"
-Path(path).write_text(html,encoding="utf-8")
-print(path)
+</html>
 
