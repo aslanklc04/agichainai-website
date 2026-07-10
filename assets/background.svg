@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Base dark gradient -->
+    <linearGradient id="bgBase" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#05070d"/>
+      <stop offset="50%" stop-color="#070a12"/>
+      <stop offset="100%" stop-color="#05070d"/>
+    </linearGradient>
+
+    <!-- Soft ambient glows -->
+    <radialGradient id="bgGlow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d8ff" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#00d8ff" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="bgGlow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c4dff" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#7c4dff" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="bgGlow3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#30ffb2" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#30ffb2" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Sparse dot texture -->
+    <pattern id="bgDots" width="120" height="120" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="30" r="1" fill="#00d8ff" opacity="0.10"/>
+      <circle cx="80" cy="90" r="1" fill="#7c4dff" opacity="0.08"/>
+      <circle cx="105" cy="45" r="0.8" fill="#30ffb2" opacity="0.08"/>
+    </pattern>
+  </defs>
+
+  <!-- Layers -->
+  <rect width="1440" height="900" fill="url(#bgBase)"/>
+  <rect width="1440" height="900" fill="url(#bgDots)"/>
+
+  <ellipse cx="180" cy="120" rx="560" ry="420" fill="url(#bgGlow1)"/>
+  <ellipse cx="1300" cy="480" rx="520" ry="400" fill="url(#bgGlow2)"/>
+  <ellipse cx="640" cy="860" rx="600" ry="360" fill="url(#bgGlow3)"/>
+
+  <!-- Faint horizon lines -->
+  <g stroke="#00d8ff" stroke-width="1" opacity="0.05">
+    <line x1="0" y1="300" x2="1440" y2="300"/>
+    <line x1="0" y1="600" x2="1440" y2="600"/>
+  </g>
+</svg>
