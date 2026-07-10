@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="icoSdk" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d8ff"/>
+      <stop offset="100%" stop-color="#7c4dff"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#icoSdk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="16,14 6,24 16,34"/>
+    <polyline points="32,14 42,24 32,34"/>
+  </g>
+  <line x1="27" y1="10" x2="21" y2="38" stroke="#30ffb2" stroke-width="3" stroke-linecap="round"/>
+</svg>
