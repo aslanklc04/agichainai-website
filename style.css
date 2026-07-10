@@ -207,3 +207,42 @@ font-size:18px;
 .stats div{
 text-align:center;
 }
+.subtitle{
+
+max-width:700px;
+
+margin:0 auto 60px;
+
+text-align:center;
+
+color:#9db2ce;
+
+font-size:20px;
+
+line-height:1.7;
+
+}
+
+.card h3{
+
+font-size:26px;
+
+margin-bottom:18px;
+
+}
+
+.card p{
+
+color:#b7c3d4;
+
+line-height:1.8;
+
+font-size:17px;
+
+}
+
+.grid{
+
+margin-top:40px;
+
+}
