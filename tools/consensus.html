@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.2 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.2.1 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.2 — AGIChainAI</title>
+  <title>Consensus v0.2.1 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.2 · Free to Start</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.2.1 · Free to Start</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Start with free models in about 2 minutes, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -144,7 +144,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.2 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.2.1 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -166,10 +166,20 @@
       note: "Fast Llama models, generous free tier", on: true },
     { id: "gemini", name: "Google Gemini", free: true, kind: "openai-compat",
       baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash-lite",
       keyUrl: "https://aistudio.google.com/apikey",
       note: "Google AI Studio key, no card needed", on: true },
-    { id: "openrouter", name: "OpenRouter", free: true, kind: "openai-compat",
+    { id: "deepseek", name: "DeepSeek", free: true, kind: "openai-compat",
+      baseUrl: "https://openrouter.ai/api/v1",
+      model: "deepseek/deepseek-chat-v3-0324:free",
+      keyUrl: "https://openrouter.ai/keys",
+      note: "Free via OpenRouter — one key also unlocks Qwen below", on: false },
+    { id: "qwen", name: "Qwen", free: true, kind: "openai-compat",
+      baseUrl: "https://openrouter.ai/api/v1",
+      model: "qwen/qwen3-14b:free",
+      keyUrl: "https://openrouter.ai/keys",
+      note: "Free via OpenRouter — same key as DeepSeek works here", on: false },
+    { id: "openrouter", name: "OpenRouter (any)", free: true, kind: "openai-compat",
       baseUrl: "https://openrouter.ai/api/v1",
       model: "meta-llama/llama-3.3-70b-instruct:free",
       keyUrl: "https://openrouter.ai/keys",
@@ -268,13 +278,31 @@
     head.appendChild(n); head.appendChild(m);
     const body = document.createElement("div");
     body.className = "ans-body thinking";
-    body.textContent = "Thinking…";
+    body.textContent = "Thinking… (auto-retries if rate-limited)";
     card.appendChild(head); card.appendChild(body);
     $("answers").appendChild(card);
     return { card, body, meta: m };
   }
 
+  // 429 (rate limit) and 503 (overload) are retried automatically with waits.
   async function callSlot(slot, question) {
+    const RETRY = [4000, 8000];        // wait 4s, then 8s, then give up
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await callOnce(slot, question);
+      } catch (err) {
+        const msg = String(err && err.message || err);
+        const retryable = msg.indexOf("HTTP 429") !== -1 || msg.indexOf("HTTP 503") !== -1;
+        if (retryable && attempt < RETRY.length) {
+          await new Promise(r => setTimeout(r, RETRY[attempt]));
+          continue;                     // try again after waiting
+        }
+        throw err;
+      }
+    }
+  }
+
+  async function callOnce(slot, question) {
     const t0 = performance.now();
     let text;
     if (slot.kind === "anthropic") {
@@ -332,7 +360,9 @@
       } catch (err) {
         ui.card.classList.add("err");
         ui.body.classList.remove("thinking");
-        ui.body.textContent = "Failed: " + (err.message || err);
+        let m = String(err.message || err);
+        if (m.indexOf("HTTP 429") !== -1) m += " — free-tier rate limit; retried automatically, still busy. Wait ~1 minute and ask again.";
+        ui.body.textContent = "Failed: " + m;
         return { name: slot.name, ok: false };
       }
     }));
