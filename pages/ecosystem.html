@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="The AGIChainAI ecosystem — AGI Chat, AI Agents, Developer SDK, Marketplace, Blockchain, Wallet, Cloud, Node Network, API and Research.">
+  <meta name="description" content="The AGIChainAI ecosystem — every component labeled honestly as Available, In Development, Planned or Research. Nothing is presented as a product before it is one.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/pages/ecosystem.html">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.agichainai.com/pages/ecosystem.html">
   <meta property="og:title" content="Ecosystem — AGIChainAI">
-  <meta property="og:description" content="Ten products, one decentralized intelligence network.">
+  <meta property="og:description" content="One vision, built step by step — with honest status labels.">
   <meta property="og:image" content="https://www.agichainai.com/images/og-image.png">
 
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
@@ -19,6 +19,14 @@
 
   <title>Ecosystem — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
+  <style>
+    .doc table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.93rem; }
+    .doc th { text-align: left; color: var(--primary); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border-hover); }
+    .doc td { padding: 9px 14px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .doc tr:hover td { background: rgba(255,255,255,0.03); }
+    .status-available { color: var(--accent); font-weight: 700; }
+    .status-dev { color: var(--primary); font-weight: 700; }
+  </style>
 </head>
 <body>
 
@@ -28,18 +36,16 @@
         <img src="../assets/logo.svg" alt="AGIChainAI logo" width="36" height="36">
         <span class="nav-logo-text">AGIChain<span class="logo-accent">AI</span></span>
       </a>
-
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navMenu">
         <span class="nav-toggle-bar"></span>
         <span class="nav-toggle-bar"></span>
         <span class="nav-toggle-bar"></span>
       </button>
-
       <ul class="nav-menu" id="navMenu">
         <li><a href="../index.html" class="nav-link">Home</a></li>
         <li><a href="../index.html#about" class="nav-link">About</a></li>
         <li><a href="ecosystem.html" class="nav-link active">Ecosystem</a></li>
-        <li><a href="tokenomics.html" class="nav-link">Tokenomics</a></li>
+        <li><a href="tokenomics.html" class="nav-link">Economics</a></li>
         <li><a href="roadmap.html" class="nav-link">Roadmap</a></li>
         <li><a href="whitepaper.html" class="nav-link">Whitepaper</a></li>
         <li><a href="faq.html" class="nav-link">FAQ</a></li>
@@ -53,119 +59,158 @@
     <section class="page-hero">
       <div class="container">
         <span class="section-eyebrow">Ecosystem</span>
-        <h1>Ten products.<br>One <span class="gradient-text">intelligence network</span>.</h1>
-        <p>Every product below runs on the same decentralized infrastructure
-        and the same AGIC token — designed to work together from day one.</p>
+        <h1>One vision,<br>built <span class="gradient-text">step by step</span></h1>
+        <p>Every component below is placed in exactly one of four categories.
+        Nothing in a later category is presented as a product.</p>
       </div>
     </section>
 
-    <!-- Core products -->
+    <!-- Available Today -->
     <section class="section">
       <div class="container">
         <div class="section-header reveal">
-          <span class="section-eyebrow">Core Products</span>
-          <h2 class="section-title">The six pillars</h2>
+          <span class="section-eyebrow" style="color: var(--accent);">Available Today</span>
+          <h2 class="section-title">What exists right now</h2>
+          <p class="section-desc">These exist and can be inspected today.</p>
         </div>
-
-        <div class="eco-grid">
-          <article class="eco-card glass-card reveal">
-            <img src="../assets/icons/ai.svg" alt="" width="44" height="44" aria-hidden="true">
-            <h3>AGI Chat</h3>
-            <p>A conversational AI interface running on distributed compute. Private by design, censorship-resistant and available 24/7 — every response carries verification metadata proving which model produced it.</p>
+        <div class="about-grid">
+          <article class="glass-card reveal">
+            <h3>Official Website</h3>
+            <p>The project's public home at agichainai.com — mission, principles, roadmap and contact channels.</p>
           </article>
-
-          <article class="eco-card glass-card reveal">
-            <img src="../assets/icons/blockchain.svg" alt="" width="44" height="44" aria-hidden="true">
-            <h3>AI Agents</h3>
-            <p>Autonomous on-chain entities with their own identity, wallet and permissions. Agents schedule tasks, analyze data, call APIs, interact with smart contracts and pay for their own compute in AGIC.</p>
+          <article class="glass-card reveal">
+            <h3>Public Repository</h3>
+            <p>The website's full source code, openly published on GitHub for anyone to read, verify or reuse.</p>
           </article>
-
-          <article class="eco-card glass-card reveal">
-            <img src="../assets/icons/sdk.svg" alt="" width="44" height="44" aria-hidden="true">
-            <h3>Developer SDK</h3>
-            <p>Build AI-powered dApps with a clean, documented interface — model access, agent orchestration, verifiable inference and on-chain payments in a few lines of code. Planned for Q2 2027.</p>
-          </article>
-
-          <article class="eco-card glass-card reveal">
-            <img src="../assets/icons/marketplace.svg" alt="" width="44" height="44" aria-hidden="true">
-            <h3>Marketplace</h3>
-            <p>A decentralized marketplace for AI models, agents, datasets and compute capacity. Usage is metered on-chain and revenue flows automatically to creators — no intermediaries.</p>
-          </article>
-
-          <article class="eco-card glass-card reveal">
-            <img src="../assets/icons/token.svg" alt="" width="44" height="44" aria-hidden="true">
-            <h3>Blockchain</h3>
-            <p>A high-throughput chain optimized for AI workloads: sub-second finality for micro-payments, agent identity registry, inference commitments and low, predictable fees for machine-to-machine transactions.</p>
-          </article>
-
-          <article class="eco-card glass-card reveal">
-            <img src="../assets/icons/wallet.svg" alt="" width="44" height="44" aria-hidden="true">
-            <h3>Wallet</h3>
-            <p>A non-custodial wallet built for the AGI economy — manage AGIC, monitor your agents, approve their budgets and handle subscriptions from a single interface. Beta planned alongside the testnet.</p>
+          <article class="glass-card reveal">
+            <h3>Whitepaper &amp; Documentation</h3>
+            <p>Our whitepaper — developed publicly, chapter by chapter — and the public materials accompanying it.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Supporting layer -->
+    <!-- In Development -->
     <section class="section section-alt">
       <div class="container">
         <div class="section-header reveal">
-          <span class="section-eyebrow">Supporting Layer</span>
-          <h2 class="section-title">The infrastructure behind it</h2>
+          <span class="section-eyebrow">In Active Development</span>
+          <h2 class="section-title">Real, but incomplete</h2>
         </div>
-
-        <div class="values-grid">
-          <div class="value-card reveal">
-            <h4>Cloud</h4>
-            <p>Distributed storage and deployment services for models and agent state — redundant, encrypted and censorship-resistant.</p>
-          </div>
-          <div class="value-card reveal">
-            <h4>Node Network</h4>
-            <p>The global network of GPU/CPU operators powering inference. Anyone can join, stake AGIC and earn rewards for verified work.</p>
-          </div>
-          <div class="value-card reveal">
-            <h4>API</h4>
-            <p>A public gateway for teams that want AGIChainAI capability with web2 simplicity — REST endpoints backed by decentralized compute.</p>
-          </div>
-          <div class="value-card reveal">
-            <h4>Research</h4>
-            <p>Open research on verifiable inference, privacy-preserving computation and agent economies — published openly, funded by the treasury.</p>
-          </div>
+        <div class="about-grid">
+          <article class="glass-card reveal">
+            <h3>Brand Identity</h3>
+            <p>Logo, design system and visual language — largely complete, being refined.</p>
+          </article>
+          <article class="glass-card reveal">
+            <h3>Community Foundations</h3>
+            <p>Official channels, contribution guidelines and a code of conduct are being established.</p>
+          </article>
+          <article class="glass-card reveal">
+            <h3>Public Documentation</h3>
+            <p>Guides that explain, in plain language, what we build, how it works and what its limits are.</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- How it fits together -->
+    <!-- Planned -->
     <section class="section">
       <div class="container">
         <div class="section-header reveal">
-          <span class="section-eyebrow">Architecture</span>
-          <h2 class="section-title">How it all connects</h2>
+          <span class="section-eyebrow">Planned Components</span>
+          <h2 class="section-title">Goals, not products</h2>
+          <p class="section-desc">These do not exist yet. Their scope may change as we learn.</p>
         </div>
-
-        <div class="token-utility reveal" style="max-width: 760px; margin: 0 auto;">
-          <div class="utility-item">
-            <h4>1. Users &amp; Agents make requests</h4>
-            <p>Through AGI Chat, the Wallet, or apps built with the SDK/API, a request for AI computation is created and paid in AGIC.</p>
-          </div>
-          <div class="utility-item">
-            <h4>2. The Node Network executes</h4>
-            <p>The request is routed to staked compute nodes. Results come back with cryptographic commitments (Proof-of-Inference).</p>
-          </div>
-          <div class="utility-item">
-            <h4>3. The Blockchain settles</h4>
-            <p>Payment splits automatically: node operators, model creators from the Marketplace, and the community treasury each receive their share.</p>
-          </div>
-          <div class="utility-item">
-            <h4>4. Governance steers</h4>
-            <p>AGIC holders vote on parameters, upgrades and treasury spending — closing the loop of a self-sustaining ecosystem.</p>
-          </div>
+        <div class="eco-grid">
+          <article class="eco-card glass-card reveal">
+            <img src="../assets/icons/ai.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>AI Tools &amp; AGI Chat</h3>
+            <p><strong>Planned</strong> — accessible AI interfaces as the ecosystem's first user-facing products.</p>
+          </article>
+          <article class="eco-card glass-card reveal">
+            <img src="../assets/icons/sdk.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Developer Docs &amp; SDK</h3>
+            <p><strong>Planned</strong> — resources that let others build on what we build.</p>
+          </article>
+          <article class="eco-card glass-card reveal">
+            <img src="../assets/icons/blockchain.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>AI Agent Framework</h3>
+            <p><strong>Planned</strong> — tooling for creating AI agents designed to be controllable, auditable and safe.</p>
+          </article>
+          <article class="eco-card glass-card reveal">
+            <img src="../assets/icons/wallet.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Wallet Integration</h3>
+            <p><strong>Planned</strong> — secure account and asset management for the ecosystem.</p>
+          </article>
+          <article class="eco-card glass-card reveal">
+            <img src="../assets/icons/marketplace.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Marketplace</h3>
+            <p><strong>Planned</strong> — a venue where creators could share models, agents and tools.</p>
+          </article>
+          <article class="eco-card glass-card reveal">
+            <img src="../assets/icons/token.svg" alt="" width="44" height="44" aria-hidden="true">
+            <h3>Governance Tools</h3>
+            <p><strong>Planned</strong> — mechanisms for transparent community participation in decisions.</p>
+          </article>
         </div>
+      </div>
+    </section>
 
+    <!-- Research -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Research Directions</span>
+          <h2 class="section-title">Questions we study, not commitments we make</h2>
+          <p class="section-desc">These may take years, change form, or prove impractical — and we say so openly.</p>
+        </div>
+        <div class="values-grid">
+          <div class="value-card reveal"><h4>Decentralized AI Network</h4><p>Whether and how AI workloads can run on distributed infrastructure.</p></div>
+          <div class="value-card reveal"><h4>Verifiable AI Computation</h4><p>Methods for independently confirming which model produced an output.</p></div>
+          <div class="value-card reveal"><h4>Distributed AI Nodes</h4><p>Participation models for contributing compute to an open network.</p></div>
+          <div class="value-card reveal"><h4>AI Identity</h4><p>How agents and models could carry secure, verifiable identities.</p></div>
+          <div class="value-card reveal"><h4>Federated Coordination</h4><p>How independent participants could coordinate without central control.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status table -->
+    <section class="section">
+      <div class="container doc" style="padding-top: 0; padding-bottom: 40px;">
+        <div class="section-header reveal">
+          <span class="section-eyebrow">Status Overview</span>
+          <h2 class="section-title" style="border: none; padding-top: 0;">A snapshot, not a contract</h2>
+        </div>
+        <table class="reveal">
+          <thead><tr><th>Component</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Official Website</td><td class="status-available">Available</td></tr>
+            <tr><td>Public Repository</td><td class="status-available">Available</td></tr>
+            <tr><td>Whitepaper</td><td class="status-available">Published</td></tr>
+            <tr><td>Brand Identity</td><td class="status-dev">In Development</td></tr>
+            <tr><td>Community Foundations</td><td class="status-dev">In Development</td></tr>
+            <tr><td>AI Tools &amp; AGI Chat</td><td>Planned</td></tr>
+            <tr><td>Developer Docs &amp; SDK</td><td>Planned</td></tr>
+            <tr><td>AI Agent Framework</td><td>Planned</td></tr>
+            <tr><td>Wallet Integration</td><td>Planned</td></tr>
+            <tr><td>Marketplace</td><td>Planned</td></tr>
+            <tr><td>Governance Tools</td><td>Planned</td></tr>
+            <tr><td>Decentralized AI Network</td><td>Research</td></tr>
+            <tr><td>Verifiable AI Computation</td><td>Research</td></tr>
+            <tr><td>Distributed AI Nodes</td><td>Research</td></tr>
+            <tr><td>AI Identity</td><td>Research</td></tr>
+            <tr><td>Federated Coordination</td><td>Research</td></tr>
+          </tbody>
+        </table>
+        <p class="reveal" style="color: var(--text-muted);">
+          This table is updated as the project evolves — including, when
+          necessary, moving components backward. A component advances only
+          when its implementation justifies the change, not when expectations
+          do.
+        </p>
         <div class="section-cta reveal">
-          <a href="whitepaper.html" class="btn btn-primary">Read the Whitepaper</a>
-          <a href="roadmap.html" class="btn btn-secondary">See the Roadmap</a>
+          <a href="whitepaper.html" class="btn btn-primary">Read Chapter 8 in the Whitepaper</a>
         </div>
       </div>
     </section>
@@ -184,7 +229,6 @@
   </footer>
 
   <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
-
   <script src="../script.js"></script>
 </body>
 </html>
