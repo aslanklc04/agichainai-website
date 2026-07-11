@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AGIChainAI Consensus v0.2 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#05070d">
+  <title>Consensus v0.2 — AGIChainAI</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
+    .setup-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; backdrop-filter: blur(14px); margin-bottom: 26px; }
+    .setup-card h2 { font-size: 1.1rem; margin-bottom: 4px; }
+    .hint { color: var(--text-dim); font-size: 0.84rem; margin-bottom: 16px; }
+    .free-banner { border: 1px solid rgba(48,255,178,0.4); background: rgba(48,255,178,0.07); border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted); }
+    .free-banner strong { color: var(--accent); }
+    .providers { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .prov { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; background: rgba(255,255,255,0.02); }
+    .prov.enabled { border-color: var(--border-hover); }
+    .prov-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-weight: 700; flex-wrap: wrap; }
+    .prov-head input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--primary); }
+    .free-tag { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: #04131a; background: var(--accent); border-radius: 999px; padding: 2px 9px; font-weight: 800; }
+    .paid-tag { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; }
+    .keylink { display: inline-block; font-size: 0.8rem; margin-bottom: 12px; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+    .field input, textarea.qbox {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+      color: var(--text); font-family: inherit; font-size: 0.92rem;
+    }
+    .field input:focus, textarea.qbox:focus { outline: none; border-color: var(--border-hover); }
+    .privacy-note { border-left: 3px solid var(--accent); background: rgba(48,255,178,0.06); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 13px 16px; font-size: 0.86rem; color: var(--text-muted); margin: 18px 0; }
+    .privacy-note strong { color: var(--accent); }
+    .steps { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 20px; }
+    .step { flex: 1; min-width: 150px; font-size: 0.82rem; color: var(--text-muted); }
+    .step b { display: block; color: var(--primary); font-size: 1rem; margin-bottom: 3px; }
+    textarea.qbox { resize: vertical; min-height: 90px; font-size: 1rem; }
+    .ask-row { display: flex; gap: 12px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+    .answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 26px; }
+    .ans-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .ans-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .ans-name { font-weight: 800; color: var(--primary); font-size: 0.95rem; }
+    .ans-meta { font-size: 0.72rem; color: var(--text-dim); }
+    .ans-body { font-size: 0.9rem; line-height: 1.65; color: var(--text-muted); white-space: pre-wrap; word-wrap: break-word; max-height: 420px; overflow-y: auto; }
+    .ans-card.err { border-color: rgba(255,93,143,0.4); }
+    .ans-card.err .ans-name { color: #ff9db9; }
+    .synth { margin-top: 26px; border: 1px solid var(--border-hover); border-radius: var(--radius); padding: 26px; background: linear-gradient(180deg, rgba(0,216,255,0.05), rgba(124,77,255,0.04)); }
+    .synth h3 { color: var(--accent); margin-bottom: 12px; font-size: 1.05rem; }
+    .synth-body { font-size: 0.95rem; color: var(--text-muted); white-space: pre-wrap; word-wrap: break-word; }
+    .thinking { font-style: italic; color: var(--text-dim); }
+    .status-tag { display: inline-block; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border-hover); color: var(--primary); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; margin-left: 10px; vertical-align: middle; }
+    .session-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim); }
+    .btn-small { padding: 8px 18px; font-size: 0.83rem; }
+    .btn-danger { border-color: rgba(255,93,143,0.4); color: #ff9db9; background: transparent; }
+  </style>
+</head>
+<body>
+
+  <header class="navbar scrolled" id="navbar">
+    <nav class="nav-container" aria-label="Main navigation">
+      <a href="../index.html" class="nav-logo" aria-label="AGIChainAI home">
+        <img src="../assets/logo.svg" alt="AGIChainAI logo" width="36" height="36">
+        <span class="nav-logo-text">AGIChain<span class="logo-accent">AI</span></span>
+      </a>
+      <ul class="nav-menu" style="display:flex;">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="../pages/ecosystem.html" class="nav-link">Ecosystem</a></li>
+        <li><a href="../pages/whitepaper.html" class="nav-link">Whitepaper</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="page-hero" style="padding-bottom: 26px;">
+      <div class="container">
+        <span class="section-eyebrow">First Products · Shipped Work</span>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.2 · Free to Start</span></h1>
+        <p>Ask once. Hear every model. See where they agree — and why they
+        differ. Start with free models in about 2 minutes, no credit card.
+        Your keys stay in your browser and talk directly to each provider.</p>
+      </div>
+    </section>
+
+    <section class="container tool-wrap">
+
+      <!-- SETUP -->
+      <div class="setup-card" id="setupPanel">
+        <div class="free-banner">
+          <strong>Start free, no card required:</strong> the first three
+          providers below give free API keys in about 2 minutes. Click
+          "Get free key", copy, paste here. That's the whole setup.
+        </div>
+
+        <div class="steps">
+          <div class="step"><b>1</b>Click "Get free key" on a green provider — sign in, copy the key</div>
+          <div class="step"><b>2</b>Paste it below (settings are pre-filled for you)</div>
+          <div class="step"><b>3</b>Start Session and ask your question</div>
+        </div>
+
+        <div class="providers" id="providerGrid"></div>
+
+        <div class="privacy-note">
+          <strong>Privacy by architecture:</strong> this page has no backend.
+          Keys live in this tab's memory only — never in storage, cookies or
+          any server we run. Requests go directly from your browser to each
+          provider's official API. Every line is
+          <a href="https://github.com/aslanklc04/agichainai-website/blob/main/tools/consensus.html" rel="noopener" target="_blank">open source and verifiable</a>.
+          Use only on a device you trust.
+        </div>
+
+        <button class="btn btn-primary" id="startBtn">Start Session</button>
+      </div>
+
+      <!-- ASK -->
+      <div id="askPanel" style="display:none;">
+        <div class="setup-card">
+          <h2>Your question</h2>
+          <p class="hint">One prompt, sent to every connected model in parallel.</p>
+          <textarea class="qbox" id="question" placeholder="Ask anything…"></textarea>
+          <div class="ask-row">
+            <button class="btn btn-primary" id="askBtn">Ask all models</button>
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);">
+              <input type="checkbox" id="doSynth" checked style="accent-color:var(--primary);width:16px;height:16px;">
+              Generate consensus analysis
+            </label>
+          </div>
+        </div>
+
+        <div class="answers" id="answers"></div>
+        <div id="synthWrap"></div>
+
+        <div class="session-bar">
+          <span id="sessionMeta"></span>
+          <button class="btn btn-secondary btn-small btn-danger" id="endBtn">End session (wipe keys)</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>© 2026 AGIChainAI. Consensus v0.2 — early preview.</p>
+      <p>No tracking · No cookies · No server ·
+        <a href="../pages/privacy.html">Privacy</a> ·
+        <a href="../index.html">Home</a>
+      </p>
+    </div>
+  </footer>
+
+<script>
+"use strict";
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // ---- provider catalog: free-first, everything pre-filled ----
+  const PROVIDERS = [
+    { id: "groq", name: "Groq", free: true, kind: "openai-compat",
+      baseUrl: "https://api.groq.com/openai/v1",
+      model: "llama-3.3-70b-versatile",
+      keyUrl: "https://console.groq.com/keys",
+      note: "Fast Llama models, generous free tier", on: true },
+    { id: "gemini", name: "Google Gemini", free: true, kind: "openai-compat",
+      baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+      model: "gemini-2.0-flash",
+      keyUrl: "https://aistudio.google.com/apikey",
+      note: "Google AI Studio key, no card needed", on: true },
+    { id: "openrouter", name: "OpenRouter", free: true, kind: "openai-compat",
+      baseUrl: "https://openrouter.ai/api/v1",
+      model: "meta-llama/llama-3.3-70b-instruct:free",
+      keyUrl: "https://openrouter.ai/keys",
+      note: "One key, many models — ':free' models cost nothing", on: false },
+    { id: "anthropic", name: "Claude", free: false, kind: "anthropic",
+      model: "claude-sonnet-4-6",
+      keyUrl: "https://console.anthropic.com/settings/keys",
+      note: "Anthropic API (paid)", on: false },
+    { id: "openai", name: "GPT", free: false, kind: "openai-compat",
+      baseUrl: "https://api.openai.com/v1",
+      model: "gpt-4o-mini",
+      keyUrl: "https://platform.openai.com/api-keys",
+      note: "OpenAI API (paid)", on: false }
+  ];
+
+  let slots = [];
+  let busy = false;
+
+  // ---- build provider cards ----
+  const grid = $("providerGrid");
+  PROVIDERS.forEach((p) => {
+    const card = document.createElement("div");
+    card.className = "prov";
+    card.id = "prov-" + p.id;
+
+    const head = document.createElement("div");
+    head.className = "prov-head";
+    const box = document.createElement("input");
+    box.type = "checkbox"; box.id = "en-" + p.id; box.checked = p.on;
+    const nm = document.createElement("span"); nm.textContent = p.name;
+    const tag = document.createElement("span");
+    tag.className = p.free ? "free-tag" : "paid-tag";
+    tag.textContent = p.free ? "FREE" : "PAID";
+    head.appendChild(box); head.appendChild(nm); head.appendChild(tag);
+
+    const link = document.createElement("a");
+    link.className = "keylink"; link.href = p.keyUrl;
+    link.target = "_blank"; link.rel = "noopener";
+    link.textContent = (p.free ? "Get free key" : "Get key") + " ↗ · " + p.note;
+
+    const kf = document.createElement("div"); kf.className = "field";
+    const kl = document.createElement("label"); kl.textContent = "API key (paste here)";
+    const ki = document.createElement("input");
+    ki.type = "password"; ki.id = "key-" + p.id; ki.autocomplete = "off";
+    kf.appendChild(kl); kf.appendChild(ki);
+
+    const mf = document.createElement("div"); mf.className = "field";
+    const ml = document.createElement("label"); ml.textContent = "Model (pre-filled)";
+    const mi = document.createElement("input");
+    mi.type = "text"; mi.id = "model-" + p.id; mi.value = p.model; mi.spellcheck = false;
+    mf.appendChild(ml); mf.appendChild(mi);
+
+    card.appendChild(head); card.appendChild(link); card.appendChild(kf); card.appendChild(mf);
+    grid.appendChild(card);
+
+    const sync = () => card.classList.toggle("enabled", box.checked);
+    box.addEventListener("change", sync); sync();
+  });
+
+  $("startBtn").addEventListener("click", () => {
+    slots = [];
+    PROVIDERS.forEach((p) => {
+      const key = $("key-" + p.id).value.trim();
+      if ($("en-" + p.id).checked && key) {
+        slots.push({ name: p.name, kind: p.kind, key,
+          model: $("model-" + p.id).value.trim() || p.model,
+          baseUrl: p.baseUrl });
+      }
+    });
+    if (!slots.length) {
+      alert("Paste at least one API key (green FREE providers take ~2 minutes to get one).");
+      return;
+    }
+    PROVIDERS.forEach((p) => { $("key-" + p.id).value = ""; });
+    $("setupPanel").style.display = "none";
+    $("askPanel").style.display = "";
+    $("sessionMeta").textContent = slots.length + " model(s) connected · keys held in memory only";
+    $("question").focus();
+  });
+
+  $("endBtn").addEventListener("click", () => {
+    slots = [];
+    $("answers").textContent = "";
+    $("synthWrap").textContent = "";
+    $("askPanel").style.display = "none";
+    $("setupPanel").style.display = "";
+  });
+
+  function answerCard(name, model) {
+    const card = document.createElement("div");
+    card.className = "ans-card";
+    const head = document.createElement("div");
+    head.className = "ans-head";
+    const n = document.createElement("span"); n.className = "ans-name"; n.textContent = name;
+    const m = document.createElement("span"); m.className = "ans-meta"; m.textContent = model;
+    head.appendChild(n); head.appendChild(m);
+    const body = document.createElement("div");
+    body.className = "ans-body thinking";
+    body.textContent = "Thinking…";
+    card.appendChild(head); card.appendChild(body);
+    $("answers").appendChild(card);
+    return { card, body, meta: m };
+  }
+
+  async function callSlot(slot, question) {
+    const t0 = performance.now();
+    let text;
+    if (slot.kind === "anthropic") {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": slot.key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({ model: slot.model, max_tokens: 1024,
+          messages: [{ role: "user", content: question }] })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
+      const data = await res.json();
+      text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+    } else {
+      const res = await fetch(slot.baseUrl + "/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json", "authorization": "Bearer " + slot.key },
+        body: JSON.stringify({ model: slot.model, max_tokens: 1024,
+          messages: [{ role: "user", content: question }] })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
+      const data = await res.json();
+      text = data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content : "";
+    }
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    return { text: text || "(empty response)", secs };
+  }
+
+  async function errMsg(res) {
+    try { const j = await res.json(); return (j.error && j.error.message) || ""; }
+    catch (e) { return ""; }
+  }
+
+  $("askBtn").addEventListener("click", async () => {
+    const q = $("question").value.trim();
+    if (!q || busy || !slots.length) return;
+    busy = true;
+    $("askBtn").disabled = true;
+    $("answers").textContent = "";
+    $("synthWrap").textContent = "";
+
+    const results = await Promise.all(slots.map(async (slot) => {
+      const ui = answerCard(slot.name, slot.model);
+      try {
+        const r = await callSlot(slot, q);
+        ui.body.classList.remove("thinking");
+        ui.body.textContent = r.text;
+        ui.meta.textContent = slot.model + " · " + r.secs + "s";
+        return { name: slot.name, ok: true, text: r.text };
+      } catch (err) {
+        ui.card.classList.add("err");
+        ui.body.classList.remove("thinking");
+        ui.body.textContent = "Failed: " + (err.message || err);
+        return { name: slot.name, ok: false };
+      }
+    }));
+
+    const good = results.filter(r => r.ok);
+    if ($("doSynth").checked && good.length >= 2) {
+      await synthesize(q, good);
+    } else if ($("doSynth").checked && good.length < 2) {
+      const note = document.createElement("p");
+      note.className = "hint"; note.style.marginTop = "16px";
+      note.textContent = "Consensus analysis needs at least two successful answers.";
+      $("synthWrap").appendChild(note);
+    }
+
+    busy = false;
+    $("askBtn").disabled = false;
+  });
+
+  async function synthesize(question, answers) {
+    const wrap = document.createElement("div");
+    wrap.className = "synth";
+    const h = document.createElement("h3");
+    h.textContent = "Consensus Analysis";
+    const body = document.createElement("div");
+    body.className = "synth-body thinking";
+    body.textContent = "Comparing answers…";
+    wrap.appendChild(h); wrap.appendChild(body);
+    $("synthWrap").appendChild(wrap);
+
+    const prompt =
+      "You are a neutral analyst. A user asked several AI models the same question. " +
+      "Compare the answers and produce, concisely:\n" +
+      "1. AGREEMENT — points where models agree.\n" +
+      "2. DIFFERENCES — where they diverge, and a likely reason.\n" +
+      "3. SYNTHESIS — the best combined answer for the user.\n" +
+      "Do not invent facts not present in the answers.\n\n" +
+      "QUESTION:\n" + question + "\n\n" +
+      answers.map(a => "=== ANSWER FROM " + a.name + " ===\n" + a.text).join("\n\n");
+
+    try {
+      const synthSlot = slots[0];
+      const r = await callSlot(synthSlot, prompt);
+      body.classList.remove("thinking");
+      body.textContent = r.text;
+      h.textContent = "Consensus Analysis · by " + synthSlot.name;
+    } catch (err) {
+      body.classList.remove("thinking");
+      body.textContent = "Analysis failed: " + (err.message || err);
+    }
+  }
+
+  window.addEventListener("pagehide", () => { slots = []; });
+})();
+</script>
+</body>
+</html>
