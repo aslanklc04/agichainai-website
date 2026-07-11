@@ -3,22 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Whitepaper — vision, technology, consensus, AI architecture, token economy and governance of the decentralized AGI infrastructure.">
+  <meta name="description" content="AGIChainAI Whitepaper v2.0 — vision, principles, ecosystem status, technology direction, security philosophy, governance and economic approach of an open AI infrastructure project.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/pages/whitepaper.html">
 
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://www.agichainai.com/pages/whitepaper.html">
-  <meta property="og:title" content="AGIChainAI Whitepaper">
-  <meta property="og:description" content="The technical and economic foundation of the AGIChainAI network.">
+  <meta property="og:title" content="AGIChainAI Whitepaper v2.0">
+  <meta property="og:description" content="Build utility. Earn trust. Improve continuously.">
   <meta property="og:image" content="https://www.agichainai.com/images/og-image.png">
 
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="../manifest.json">
   <meta name="theme-color" content="#05070d">
 
-  <title>Whitepaper — AGIChainAI</title>
+  <title>Whitepaper v2.0 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
+  <style>
+    /* Whitepaper-page-only additions */
+    .doc table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.93rem; }
+    .doc th { text-align: left; color: var(--primary); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border-hover); }
+    .doc td { padding: 9px 14px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .doc tr:hover td { background: rgba(255,255,255,0.03); }
+    .doc h2 { padding-top: 18px; border-top: 1px solid var(--border); }
+    .doc h2:first-child { border-top: none; padding-top: 0; }
+    .doc strong { color: var(--text); }
+    .doc em { color: var(--accent); font-style: italic; }
+    .doc blockquote { border-left: 3px solid var(--primary); padding-left: 18px; margin: 20px 0; }
+    .wp-meta { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-top: 22px; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+    .doc hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  </style>
 </head>
 <body>
 
@@ -28,13 +42,11 @@
         <img src="../assets/logo.svg" alt="AGIChainAI logo" width="36" height="36">
         <span class="nav-logo-text">AGIChain<span class="logo-accent">AI</span></span>
       </a>
-
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navMenu">
         <span class="nav-toggle-bar"></span>
         <span class="nav-toggle-bar"></span>
         <span class="nav-toggle-bar"></span>
       </button>
-
       <ul class="nav-menu" id="navMenu">
         <li><a href="../index.html" class="nav-link">Home</a></li>
         <li><a href="../index.html#about" class="nav-link">About</a></li>
@@ -52,185 +64,268 @@
 
     <section class="page-hero">
       <div class="container">
-        <span class="section-eyebrow">Whitepaper · v1.0 · 2026</span>
+        <span class="section-eyebrow">Whitepaper · Version 2.0 · 2026</span>
         <h1>AGIChainAI <span class="gradient-text">Whitepaper</span></h1>
-        <p>The technical and economic foundation of a decentralized
-        infrastructure for the AGI era.</p>
+        <p>AGIChainAI builds the infrastructure that helps people use AI more openly, more securely and with greater confidence.</p>
+        <div class="wp-meta">
+          <span>15 Chapters</span><span>·</span>
+          <span>Openness without security is not progress</span><span>·</span>
+          <span>Build utility. Earn trust. Improve continuously.</span>
+        </div>
       </div>
     </section>
 
     <article class="container doc">
-
-      <h2>1. Abstract</h2>
-      <p>
-        AGIChainAI is a decentralized infrastructure project that combines
-        blockchain technology with artificial intelligence to create an open,
-        verifiable and community-governed intelligence network. This document
-        describes the project's vision, technical architecture, consensus
-        design, AI layer, token economy and governance model.
-      </p>
-      <p>
-        The core thesis is simple: as AI systems approach general-purpose
-        capability, the infrastructure they run on must not be controlled by
-        a single entity. AGIChainAI proposes a network where computation,
-        model access and economic value are distributed across participants.
-      </p>
-
-      <h2>2. Vision</h2>
-      <p>
-        The transition from narrow AI to AGI-class systems will be one of the
-        most consequential technological shifts in history. Today, the most
-        capable models are trained, hosted and priced by a small number of
-        corporations. Users cannot verify how these systems behave, developers
-        depend on closed APIs, and the value created flows to centralized
-        owners.
-      </p>
-      <p>AGIChainAI envisions an alternative future built on three principles:</p>
-      <ul>
-        <li><strong>Open access</strong> — anyone can use, build on and contribute to the network.</li>
-        <li><strong>Verifiability</strong> — AI computation is auditable through on-chain proofs and open code.</li>
-        <li><strong>Shared ownership</strong> — the network is governed and its value is shared by its participants.</li>
-      </ul>
-
-      <h2>3. Problem Statement</h2>
-      <h3>3.1 Centralization of intelligence</h3>
-      <p>
-        Access to frontier AI is gated by pricing, geography and policy
-        decisions made behind closed doors. A single provider outage or policy
-        change can disable thousands of dependent applications overnight.
-      </p>
-      <h3>3.2 Lack of verifiability</h3>
-      <p>
-        Users of closed AI systems cannot confirm which model produced an
-        output, whether it was altered, or how their data was used. Trust is
-        assumed, not proven.
-      </p>
-      <h3>3.3 Misaligned value flows</h3>
-      <p>
-        Data creators, open-source contributors and infrastructure operators
-        capture little of the value their work generates. A sustainable AI
-        economy needs a mechanism that rewards every participant in the value
-        chain.
-      </p>
-
-      <h2>4. Technology Architecture</h2>
-      <p>The AGIChainAI network is organized into four layers:</p>
-      <h3>4.1 Blockchain layer</h3>
-      <p>
-        A high-throughput chain optimized for AI workloads. It records agent
-        identities, inference commitments, payments and governance decisions.
-        Design targets include sub-second finality for micro-payments and low,
-        predictable fees suitable for machine-to-machine transactions.
-      </p>
-      <h3>4.2 Compute layer</h3>
-      <p>
-        A distributed network of nodes providing GPU/CPU capacity for model
-        inference and agent execution. Node operators stake AGIC as collateral
-        and earn rewards for verified, correctly executed work.
-      </p>
-      <h3>4.3 Intelligence layer</h3>
-      <p>
-        Open and licensed models are served through a unified interface. The
-        layer supports verifiable inference: cryptographic commitments allow a
-        client to confirm that a specific model version produced a specific
-        output.
-      </p>
-      <h3>4.4 Application layer</h3>
-      <p>
-        End-user products — AGI Chat, AI Agents, the Marketplace and the
-        Wallet — plus a Developer SDK and public API that let third parties
-        build on the same infrastructure.
-      </p>
-
-      <h2>5. Consensus &amp; Verification</h2>
-      <p>
-        AGIChainAI uses a Proof-of-Stake consensus for block production
-        combined with a Proof-of-Inference scheme for the compute layer.
-      </p>
-      <ul>
-        <li><strong>Proof-of-Stake</strong> — validators stake AGIC to propose and attest blocks; misbehavior is penalized through slashing.</li>
-        <li><strong>Proof-of-Inference</strong> — compute nodes commit to model and output hashes; random spot-checks by verifier nodes ensure results match the committed model. Fraudulent nodes lose their stake.</li>
-        <li><strong>Reputation</strong> — long-lived, honest nodes accumulate reputation that increases their share of task assignments.</li>
-      </ul>
-      <p>
-        Final parameter choices (validator counts, slashing rates, spot-check
-        frequency) will be published with the testnet specification and refined
-        through community review.
-      </p>
-
-      <h2>6. The AI Layer</h2>
-      <h3>6.1 AGI Chat</h3>
-      <p>
-        A conversational interface backed by distributed inference. Requests
-        are routed to available nodes; responses carry verification metadata.
-      </p>
-      <h3>6.2 Autonomous agents</h3>
-      <p>
-        Agents are on-chain entities with their own identity, wallet and
-        permission set. They can schedule tasks, call external APIs, interact
-        with smart contracts and pay for their own compute — enabling
-        machine-to-machine economies.
-      </p>
-      <h3>6.3 Model marketplace</h3>
-      <p>
-        Model creators publish models with transparent pricing. Usage is
-        metered on-chain and revenue is distributed automatically to creators,
-        node operators and the treasury.
-      </p>
-
-      <h2>7. Token Economy</h2>
-      <p>
-        AGIC is the native utility token of the network. Its functions are:
-      </p>
-      <ul>
-        <li><strong>Payment</strong> — inference, agent execution, API calls and marketplace purchases are priced in AGIC.</li>
-        <li><strong>Staking</strong> — validators and compute nodes stake AGIC as security collateral and earn protocol rewards.</li>
-        <li><strong>Governance</strong> — AGIC confers voting power in the DAO.</li>
-        <li><strong>Incentives</strong> — contributors, model creators and ecosystem builders are rewarded from dedicated allocations.</li>
-      </ul>
-      <p>
-        Total supply is fixed at 1,000,000,000 AGIC. The allocation —
-        40% community &amp; ecosystem, 20% staking rewards, 15% treasury,
-        15% team (vested), 10% liquidity — is detailed on the
-        <a href="tokenomics.html">Tokenomics page</a>. Team tokens follow a
-        multi-year vesting schedule to align long-term incentives.
-      </p>
-
-      <h2>8. Governance</h2>
-      <p>
-        AGIChainAI will transition to full community governance through the
-        AGIChainAI DAO. Governance proceeds in phases:
-      </p>
-      <ul>
-        <li><strong>Phase 1 — Foundation-led</strong>: the core team ships the protocol with public roadmaps and open repositories.</li>
-        <li><strong>Phase 2 — Council</strong>: an elected community council co-signs treasury spending and protocol upgrades.</li>
-        <li><strong>Phase 3 — Full DAO</strong>: on-chain voting controls upgrades, parameters and the treasury; the foundation's special rights expire.</li>
-      </ul>
-
-      <h2>9. Roadmap</h2>
-      <p>
-        Development proceeds from website and whitepaper (2026) through
-        testnet, token generation and wallet beta (Q1 2027), the marketplace
-        (Q2 2027), mainnet (Q3 2027) and the DAO transition (Q4 2027). The
-        detailed, continuously updated plan is maintained on the
-        <a href="roadmap.html">Roadmap page</a>.
-      </p>
-
-      <h2>10. Risks &amp; Disclaimer</h2>
-      <p>
-        This whitepaper describes an evolving technology project. Timelines,
-        parameters and architecture may change as research and community
-        feedback develop. Building decentralized AI infrastructure involves
-        significant technical, regulatory and market risks.
-      </p>
-      <p>
-        Nothing in this document constitutes financial, legal or investment
-        advice, and it is not an offer to sell securities in any jurisdiction.
-        AGIC is designed as a utility token for use within the network.
-        Readers should conduct their own research and consult professional
-        advisors before making any decisions.
-      </p>
-
+<h2>1. Executive Summary</h2>
+<p><strong>AGIChainAI builds the infrastructure that helps people use AI more openly, more securely and with greater confidence.</strong></p>
+<p>AGIChainAI is an open technology project building decentralized infrastructure for the coming era of artificial general intelligence. We started with a simple observation: intelligence is becoming the world's most valuable resource, and today it is concentrated in the hands of a few corporations — closed models, private rules, no user voice.</p>
+<p>Our purpose is to explore an alternative path by building open, verifiable and secure infrastructure. AGIChainAI develops community-oriented AI systems: starting with accessible AI tools and developer resources today, and progressing toward a decentralized intelligence network as our research matures.</p>
+<p>One principle sits at the center of everything we build: <strong>openness without security is not progress.</strong> A decentralized network that cannot protect its users does not fulfill its purpose. Decentralization and safety must advance together — or neither is worth having.</p>
+<p>This document explains why we exist, what we believe, what we are building now, and what we plan to explore next. Where our plans are not yet certain, we say so — this whitepaper contains the words "planned" and "researching" by design, not by accident.</p>
+<p>AGIChainAI is not being built to chase trends or make unrealistic promises. It is being built step by step, with transparency, security and long-term responsibility as its foundation. Every milestone is intended to reflect real progress, not speculation.</p>
+<h2>2. The AI Revolution</h2>
+<p>Artificial intelligence has crossed a threshold. In just a few years, AI systems have moved from research labs into daily life: they write text, generate images, analyze data, assist doctors, review contracts and increasingly make decisions that affect real people. Hundreds of millions of people now interact with AI every day, often without noticing it.</p>
+<p>Three forces are driving this acceleration. First, <strong>model capability</strong> — modern systems can reason across tasks that once required separate, specialized tools. Second, <strong>falling costs</strong> — capabilities that required massive infrastructure a few years ago now run at a fraction of the price. Third, <strong>developer adoption</strong> — AI is becoming a standard layer of software, the way databases and the internet did before it.</p>
+<p>The direction of travel is clear: systems are becoming more general. Whether artificial general intelligence arrives in five years or twenty-five, preparing for increasingly capable AI systems is a responsibility we already have today.</p>
+<p>But capability is only half the story. Two questions remain unresolved. The <strong>infrastructure question</strong>: who runs these systems, who sets their rules, who captures their value? Today's answer — a small number of companies with closed models and private governance — concentrates both power and risk. And the <strong>safety question</strong>: as AI grows more capable and more distributed, how do we keep it safe for the humans who use it? Decentralization alone does not answer this; an open network without safety principles distributes risk instead of reducing it. The real challenge — and the one AGIChainAI takes seriously — is infrastructure that is both open <strong>and</strong> safe for the humans who use it.</p>
+<p>This is the role AGIChainAI aims to explore: not competing in frontier model development, but helping build the open, verifiable and secure infrastructure that advanced AI systems may require in the future.</p>
+<h2>3. Current Challenges</h2>
+<p>AGIChainAI responds to six structural challenges in today's AI landscape. We describe them as industry-wide patterns, not criticisms of any specific company — many organizations are working on these problems in good faith. The challenges are real nonetheless.</p>
+<p><strong>3.1 Centralization of AI infrastructure.</strong> The most capable AI systems today run on infrastructure controlled by a small number of organizations. This is a natural outcome of how expensive frontier AI is to build — but it creates structural dependence. When access, pricing and usage policies are set by a single provider, every application built on top inherits that single point of failure. Resilient ecosystems benefit from the existence of interoperable and diverse alternatives.</p>
+<p><strong>3.2 Limited transparency.</strong> Most AI systems operate as closed services: model internals, filtering rules and data-handling practices are not visible to users. This is often a reasonable commercial choice — but it leaves users and businesses unable to independently understand the systems they increasingly depend on.</p>
+<p><strong>3.3 Trust without verification.</strong> Today, using AI means trusting the provider: trusting that the stated model produced the answer, that outputs were not silently altered, that data was handled as promised. Independent verification mechanisms are not yet widely available across today's AI ecosystem. Systems this central to society should ultimately be verifiable, not merely trusted.</p>
+<p><strong>3.4 A fragmented developer ecosystem.</strong> Builders work across incompatible interfaces, changing terms and platform-specific constraints. The AI layer of software still lacks what earlier eras of computing eventually achieved: open, stable and neutral standards that let developers build with confidence.</p>
+<p><strong>3.5 Long-term governance questions.</strong> As AI becomes economic infrastructure, decisions about it — who can access it, on what terms, with what safeguards — carry society-wide consequences. Today those decisions rest with individual organizations. The long-term question of how such decisions should be made, and who should be accountable for them, remains open.</p>
+<p><strong>3.6 Safety in open systems.</strong> We state this final challenge against our own thesis, because honesty requires it: decentralization is not automatically safer. An open network without safety principles distributes risk instead of reducing it — it can be exploited by malicious actors or abused at scale. Any project promoting open AI infrastructure while ignoring this is solving one problem by creating another. AGIChainAI treats safety as a design constraint from day one: openness bounded by verifiable rules, responsible governance, and the principle that human safety takes precedence over architectural purity.</p>
+<h2>4. Why AGIChainAI?</h2>
+<p>Chapter 3 described six challenges. This chapter explains how AGIChainAI approaches them — not with products or technical specifications, which come later in this document, but with the philosophy that shapes everything we build.</p>
+<p><strong>4.1 Our founding conviction.</strong> We believe the infrastructure supporting advanced intelligence should not depend on decisions that are invisible or inaccessible to the broader community. As AI systems take on a growing share of economic and social decisions, the rules governing them become too consequential to remain invisible. Our conviction is not that today's AI providers act in bad faith — it is that <em>any</em> system this important should be inspectable, verifiable and open to participation, regardless of who runs it.</p>
+<p><strong>4.2 Our approach: openness and safety, together.</strong> Many projects choose one value and absolutize it — total openness, or total control. We reject that trade-off as false. Openness without security is not progress; control without transparency is not safety. AGIChainAI explores the harder middle path: infrastructure that is open to inspection and participation, while bounded by verifiable rules and responsible governance. We believe this combination — not either value alone — is what advanced AI systems may require.</p>
+<p><strong>4.3 Our method: build in the open, claim only what exists.</strong> We develop in public repositories, document our reasoning, and label our plans honestly. In this whitepaper and everywhere else, what exists is described as existing; what is planned is called planned; what is under research is called research. We would rather grow slowly with credibility than quickly with promises we cannot keep.</p>
+<p><strong>4.4 Our position in the ecosystem.</strong> AGIChainAI does not aim to compete in frontier model development, and we do not present any single technology as the answer to AI's challenges. Our interest is the connective layer: how AI capability — wherever it comes from — can be accessed, verified and governed in the open. We see ourselves as one contribution to a broader movement toward open AI infrastructure, and we welcome others working toward the same goals.</p>
+<p><strong>4.5 What guides us when rules conflict.</strong> Principles matter most when they collide. When openness and user safety conflict, safety comes first. When speed and verification conflict, verification comes first. When growth and honesty conflict, honesty comes first. These priorities are intended to guide our decisions as the project evolves. They may influence our technical choices, governance processes and product development, while remaining open to refinement through transparent discussion and practical experience.</p>
+<h2>5. Vision</h2>
+<p>Our vision is not a prediction of how large AGIChainAI could become. It is a description of the impact we hope to contribute to — and it is honest about the fact that no single project achieves such change alone.</p>
+<p><strong>5.1 What people would gain.</strong> In the future we work toward, individuals and businesses using AI are no longer asked to extend blind trust. A developer can inspect the rules of the infrastructure they build on. A user can verify — rather than assume — how their request was handled. A creator who contributes a model or dataset can better understand how it is used and, where appropriate, participate in future value-sharing mechanisms as they are researched and developed. Access to capable AI depends less on geography or gatekeeping, and more on open, neutral standards. In short: people gain <em>agency</em> over a technology that today mostly asks for their trust.</p>
+<p><strong>5.2 How the world would differ.</strong> Today, the defining question of AI infrastructure — who decides? — has a narrow answer. In the world we hope to help build, that answer is broader: important decisions about widely-used AI systems are made through processes that are visible, participatory and accountable. Closed and open systems coexist, as they do across all of computing; but the open alternative is credible, responsibly governed and developed with security as a core principle — so that no one is forced to depend on a single provider. The existence of that choice, we believe, makes the entire ecosystem — including its closed parts — more accountable.</p>
+<p><strong>5.3 The role we seek to play.</strong> We do not aim to be the owner of this future; we aim to be one of its builders. AGIChainAI seeks to contribute open tools, honest documentation, security-first practices and — as our research matures — infrastructure components that others can inspect, use and improve. If, five years from now, our work has helped make open and verifiable AI infrastructure a normal expectation rather than a niche idea, we would consider that success — whatever our own size at that point.</p>
+<h2>6. Mission</h2>
+<p>Vision describes the impact we hope to contribute to. Mission describes what we do about it — starting now, with the resources we actually have. Everything in this chapter passes a simple test: it can begin today, without waiting for future technology, funding or scale.</p>
+<p><strong>6.1 Build.</strong> We develop open, security-first tools and make them public as they mature. Today this means our website, documentation and public repositories — modest, but real and inspectable. Next, we are building accessible AI tools and developer resources. Each release is intended to be small, honest and usable, rather than large and speculative.</p>
+<p><strong>6.2 Research.</strong> We study the open questions our vision depends on: how AI computation could be independently verified, how open networks can remain safe for their users, and how decentralized infrastructure could serve AI workloads. Where appropriate, we aim to publish what we learn — including negative results and open questions — because research benefits from transparency as well as scrutiny.</p>
+<p><strong>6.3 Collaborate.</strong> We believe the challenges described in Chapter 3 are larger than any single project. We seek to work with developers, researchers and communities pursuing similar goals: contributing to open standards where they exist, learning from projects that came before us, and welcoming contributors who share our principles. Collaboration begins with our public repositories and, as the project evolves, community spaces designed for open participation.</p>
+<p><strong>6.4 Educate.</strong> Open infrastructure only matters if people can understand and use it. We write documentation and guides that explain — in plain language — what we build, how it works and what its limits are. We also aim to raise awareness of the questions this whitepaper explores: verification, data ownership, governance and safety in AI systems. An informed community is the strongest safeguard any open project can have.</p>
+<p><strong>6.5 The discipline that binds them.</strong> Across all four pillars, one working rule applies: we claim what exists, we label what is planned, and we mark what is under research. Progress is measured by shipped work and published learning — not by announcements.</p>
+<h2>7. Core Principles</h2>
+<p>These seven principles are not decoration. Each one is written with its practical consequence, so that contributors, users and future team members can hold our decisions against them. When principles conflict, the priority ordering defined in Chapter 4.5 applies: safety before openness, verification before speed, honesty before growth.</p>
+<p><strong>7.1 Human First</strong>
+<em>What it means:</em> AI should augment human capability rather than replace human responsibility.
+<em>How it influences our decisions:</em> When automation and human oversight conflict, we prioritize meaningful human control in contexts where safety, rights or significant consequences are involved.</p>
+<p><strong>7.2 Transparency</strong>
+<em>What it means:</em> The rules, reasoning and state of the project should be visible — not only its successes.
+<em>How it influences our decisions:</em> We develop in public repositories, document design decisions, and communicate setbacks as openly as milestones. If something cannot be shared, we aim to say that it exists and why it is withheld, rather than pretend it does not exist.</p>
+<p><strong>7.3 Security</strong>
+<em>What it means:</em> Security is a design constraint from day one, not a feature added before launch.
+<em>How it influences our decisions:</em> Proposals are evaluated by their failure modes, not only their benefits. Where a capability cannot yet be offered safely, we prefer to delay it. We treat "no system is unbreakable" as a working assumption, which is why detection, response and recovery matter as much as prevention.</p>
+<p><strong>7.4 Privacy</strong>
+<em>What it means:</em> User data belongs to users; collecting less is safer than protecting more.
+<em>How it influences our decisions:</em> We default to data minimization, favor privacy-preserving approaches where practical, and treat user data as a liability to be limited rather than an asset to be accumulated.</p>
+<p><strong>7.5 Open Innovation</strong>
+<em>What it means:</em> Progress compounds when knowledge and tools are shared.
+<em>How it influences our decisions:</em> Where appropriate, we favor open standards, interoperability and licensing approaches that encourage collaboration while respecting security, sustainability and legal obligations. Before building something proprietary, we ask whether an open alternative would serve the mission better — and where appropriate, we contribute to existing open efforts instead of duplicating them.</p>
+<p><strong>7.6 Responsible AI</strong>
+<em>What it means:</em> Capability without safeguards is not progress; openness does not exempt a system from responsibility.
+<em>How it influences our decisions:</em> We consider misuse potential as part of design, not as an afterthought. Features that could enable harm at scale are evaluated with extra scrutiny, and we accept that some things should not be built even when they can be.</p>
+<p><strong>7.7 Long-Term Thinking</strong>
+<em>What it means:</em> We make decisions with long-term sustainability in mind rather than short-term visibility.
+<em>How it influences our decisions:</em> We avoid shortcuts that create future risk — unaudited code, unsustainable promises, hype-driven announcements. Slow and credible beats fast and fragile.</p>
+<h2>8. The AGIChainAI Ecosystem</h2>
+<p>This chapter describes what AGIChainAI consists of. To keep our commitments honest, every component is placed in exactly one of four categories: <strong>Available Today</strong>, <strong>In Active Development</strong>, <strong>Planned</strong>, or <strong>Research Direction</strong>. Nothing in a later category is presented as a product. As components mature, they move forward through these categories — publicly, in updated versions of this document.</p>
+<p><strong>8.1 Available Today</strong>
+These exist and can be inspected right now.
+- <strong>Official Website</strong> (agichainai.com) — the project's public home: mission, principles, roadmap and contact channels.
+- <strong>Public Repository</strong> — the website's full source code, openly published on GitHub.
+- <strong>Project Documentation (initial)</strong> — this whitepaper and the public materials accompanying it.</p>
+<p><strong>8.2 In Active Development</strong>
+Work is underway on these; they are real but incomplete.
+- <strong>Whitepaper</strong> — developed publicly and refined over time through transparent revision.
+- <strong>Brand Identity</strong> — logo, design system and visual language (largely complete, being refined).
+- <strong>Community Foundations</strong> — official channels and contribution guidelines are being established.</p>
+<p><strong>8.3 Planned Components</strong>
+These do not exist yet. They are goals, not products, and their scope may change as we learn.
+- <strong>Planned — AI Tools &amp; AGI Chat:</strong> accessible AI interfaces as the ecosystem's first user-facing products.
+- <strong>Planned — Developer Documentation &amp; SDK:</strong> resources that let others build on what we build.
+- <strong>Planned — AI Agent Framework:</strong> tooling for creating and managing autonomous AI agents.
+- <strong>Planned — Wallet Integration:</strong> secure account and asset management for the ecosystem.
+- <strong>Planned — Marketplace:</strong> a venue where creators could share models, agents and tools.
+- <strong>Planned — Governance Tools:</strong> mechanisms for transparent community participation in decisions.</p>
+<p><strong>8.4 Research Directions</strong>
+These are questions we study, not commitments we make. They may take years, change form, or prove impractical — and we say so openly.
+- <strong>Research — Decentralized AI Network:</strong> whether and how AI workloads can run on distributed infrastructure.
+- <strong>Research — Verifiable AI Computation:</strong> methods for independently confirming which model produced an output.
+- <strong>Research — Distributed AI Nodes:</strong> participation models for contributing compute to an open network.
+- <strong>Research — AI Identity:</strong> how agents and models could carry secure, verifiable identities.
+- <strong>Research — Federated Coordination:</strong> how independent participants could coordinate without central control.</p>
+<p><strong>8.5 Status Overview</strong></p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Official Website</td>
+<td>Available</td>
+</tr>
+<tr>
+<td>Public Repository</td>
+<td>Available</td>
+</tr>
+<tr>
+<td>Whitepaper</td>
+<td>In Development</td>
+</tr>
+<tr>
+<td>Brand Identity</td>
+<td>In Development</td>
+</tr>
+<tr>
+<td>Community Foundations</td>
+<td>In Development</td>
+</tr>
+<tr>
+<td>AI Tools &amp; AGI Chat</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Developer Docs &amp; SDK</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>AI Agent Framework</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Wallet Integration</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Marketplace</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Governance Tools</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Decentralized AI Network</td>
+<td>Research</td>
+</tr>
+<tr>
+<td>Verifiable AI Computation</td>
+<td>Research</td>
+</tr>
+<tr>
+<td>Distributed AI Nodes</td>
+<td>Research</td>
+</tr>
+<tr>
+<td>AI Identity</td>
+<td>Research</td>
+</tr>
+<tr>
+<td>Federated Coordination</td>
+<td>Research</td>
+</tr>
+</tbody>
+</table>
+<p>This table is a snapshot, not a contract. It will be updated as the project evolves — including, when necessary, moving components backward. A component advances only when its implementation justifies the change, not when expectations do. Honesty about status is worth more to us than the appearance of speed.</p>
+<h2>9. Technology Direction</h2>
+<p>This chapter answers a deliberately limited question: not <em>"which technologies will AGIChainAI use?"</em> but <em>"which technologies are we exploring, and why?"</em> Final choices belong to the future and to evidence. Committing to specific technologies before research justifies it would violate the working principles of this document.</p>
+<p><strong>9.1 Technology Philosophy.</strong> Technology is a means, not an end. No tool is sacred, no architecture is permanent, and no technical choice is above re-evaluation. We select approaches for what they do for users — security, verifiability, accessibility — not for what they signal. When a simpler tool serves the mission better than an impressive one, we choose the simpler tool.</p>
+<p><strong>9.2 Artificial Intelligence.</strong> Our interest spans four areas. <em>Foundation models</em> — the general-purpose systems driving today's AI progress. Our current focus is on building responsibly on existing foundation models rather than pursuing frontier model development ourselves; as research and resources evolve, this direction may be reassessed. <em>AI agents</em> — systems that can carry out multi-step tasks; we explore how agents can be made controllable, auditable and safe. <em>Reasoning systems</em> — approaches that improve reliability and reduce errors in AI outputs. <em>AI tooling</em> — the practical layer (interfaces, evaluation, monitoring) that determines whether AI is usable and trustworthy in practice. We engage with these because they are where AI capability meets real users — exactly where our mission operates.</p>
+<p><strong>9.3 Open Infrastructure.</strong> We favor open APIs, open standards and interoperability wherever practical. The lesson of earlier computing eras is consistent: shared standards compound progress, while closed interfaces fragment it. Where suitable standards exist, we aim to adopt and contribute to them; where they do not, we prefer designs that others could adopt without depending on us. Interoperability is a long-term objective because healthy ecosystems benefit from reducing unnecessary dependence on any single project, including our own.</p>
+<p><strong>9.4 Distributed Systems</strong> <em>(Research)</em>. We study distributed computation, coordination without central control, fault tolerance and resilience — because our vision of infrastructure that no single party can unilaterally alter appears to require them. This research area includes, but is not limited to, blockchain-based approaches; we evaluate them alongside other distributed architectures on equal terms. Whether any of these approaches fits AI workloads at practical cost is precisely the open question our research addresses — we do not assume the answer.</p>
+<p><strong>9.5 Cryptography &amp; Verification</strong> <em>(Research)</em>. We study digital signatures, verifiable computation, identity mechanisms and auditability — the toolset that could turn "trust us" into "verify it." This matters to us because Chapter 3 identified trust-without-verification as a core challenge. The field is advancing quickly, and part of our research is simply tracking what becomes practical: some verification methods that are too costly today may not remain so.</p>
+<p><strong>9.6 Technology Selection Principles.</strong> When the time comes to choose, five principles apply:
+- We choose technologies based on suitability, not popularity.
+- We avoid unnecessary complexity; every added layer must justify itself.
+- We prefer open standards where appropriate.
+- We re-evaluate technical decisions as research and evidence evolve.
+- No technology is considered permanent — including the ones we eventually choose.</p>
+<h2>10. Security &amp; Responsible AI Philosophy</h2>
+<p>If one chapter defines this project, it is this one. Chapter 1 stated our central principle: openness without security is not progress. This chapter explains what that principle means in practice — as a philosophy that governs design, development and daily operations alike.</p>
+<p><strong>10.1 Security by Design.</strong> Security is not a feature added before launch; it is the starting point of design. Every component we build or evaluate is examined first through its failure modes: how it could be misused, what happens when it breaks, and who is affected. A capability that cannot yet be offered safely is delayed — not shipped with warnings.</p>
+<p><strong>10.2 Human Safety First.</strong> When system performance and human safety conflict, safety prevails. This priority guides our decision-making across the project. While every situation requires judgment, we do not knowingly trade preventable harm for convenience, speed or growth. In practice, this means meaningful human oversight in consequential contexts, conservative defaults, and the willingness to say no to our own ideas.</p>
+<p><strong>10.3 Defense in Depth.</strong> We do not rely on any single layer of protection. Account security, code review, dependency auditing, access controls and operational practices each assume the others might fail. This applies to the project itself as much as to what we build: securing our repositories, domains and communication channels is part of security work, not separate from it.</p>
+<p><strong>10.4 Transparency &amp; Responsible Disclosure.</strong> Vulnerabilities are not hidden; they are handled. We aim to maintain clear channels for reporting security issues, address them as responsibly and efficiently as circumstances allow, and disclose them responsibly — informing affected users without publishing exploitation guides. A project that punishes or ignores those who report problems teaches them to stop reporting.</p>
+<p><strong>10.5 Resilience Over Perfection.</strong> We treat "no system is unbreakable" as a working assumption, not an excuse. Since prevention alone is never complete, we invest equally in detection, response and recovery. The measure of a secure project is not the absence of incidents — it is how quickly problems are found, how honestly they are communicated, and how thoroughly they are fixed.</p>
+<p><strong>10.6 Responsible AI.</strong> Not everything that can be built should be built. We evaluate not only what technology enables, but also what consequences it may create — including uses we did not intend. Features with the potential to cause harm at scale receive heightened scrutiny, and openness does not exempt a system from this responsibility: publishing something is a decision with consequences, and we treat it as one.</p>
+<p><strong>10.7 Continuous Learning.</strong> Threats evolve; defenses must evolve with them. Security is a discipline of ongoing study — of new attack patterns, of incidents elsewhere in the ecosystem, of our own mistakes. We expect to be wrong sometimes; the commitment is to notice quickly, correct honestly, and share what we learn where it can help others.</p>
+<p><strong>Our standing commitment:</strong> Security is not a milestone we expect to reach. It is a continuous responsibility that evolves with the technologies we build and the risks we learn to understand.</p>
+<h2>11. Governance (Future)</h2>
+<p>How should decisions about this project be made — today, and as it grows? This chapter answers honestly: with founder-led stewardship now, expanding community participation over time, and a mature governance model that remains under research. We describe the direction, not a finished system, because pretending otherwise would violate every rule this document is written by.</p>
+<p><strong>11.1 Founding Stage (today).</strong> The project currently operates under founder leadership. This is stated plainly, not apologetically: at this stage there is no large codebase, treasury or organization to govern — there is a vision, early work and the responsibility to protect both. Founder-led stewardship at this stage is how focused direction, consistent principles and continuity are maintained. What makes this stage accountable is not shared control but transparency: public repositories, public documents and public reasoning.</p>
+<p><strong>11.2 Growth Stage.</strong> As the project attracts users and contributors, their influence on decisions grows through practical channels: feedback, technical contributions, open discussion of proposals and public issue tracking. Contribution guidelines will define how work is reviewed and merged. Influence in this stage follows merit and engagement — those who build, test and improve the project shape it.</p>
+<p><strong>11.3 Mature Stage.</strong> Over the long term, governance may become substantially more participatory. The specific governance model remains under research: foundation structures, on-chain mechanisms, hybrid models and conventional legal entities each have strengths and failure modes, and committing to one before the project needs it would be premature. What we can state today is the direction: we aim to increase meaningful community participation as the project matures, while preserving clear responsibility and long-term continuity.</p>
+<p><strong>11.4 Role of the Founder.</strong> The project was initiated by its founder, whose responsibility is to provide long-term direction, preserve the project's principles, and help ensure continuity during its early stages. During these stages, strategic direction and stewardship remain the founder's responsibility; as the project evolves, opportunities for broader participation may expand through governance mechanisms researched and introduced over time. The founder's sustained work, responsibility and long-term commitment may be reflected in the project's future economic model. Any such framework will be described transparently in dedicated documentation rather than in this whitepaper. We state this openly because undisclosed founder interests are a common failure mode of early-stage projects, and transparency about incentives is part of transparency.</p>
+<p><strong>11.5 Governance Principles.</strong> Whatever form governance eventually takes, six principles constrain it: <strong>Transparency</strong> — decisions and their reasoning are visible. <strong>Accountability</strong> — authority is matched by responsibility for outcomes. <strong>Merit</strong> — meaningful contribution should be recognized and considered in decision-making. <strong>Long-term sustainability</strong> — governance serves the decade, not the news cycle. <strong>Community participation</strong> — pathways for meaningful involvement expand as the project matures. <strong>Responsible leadership</strong> — those who lead are bound by the principles in this document most of all.</p>
+<h2>12. Development Roadmap</h2>
+<p>This roadmap describes direction, not deadlines. Dates indicate when we currently aim to focus on each area — they are planning targets, and they will shift as evidence, resources and research dictate. Consistent with the rest of this document: items are delivered when their implementation justifies it, not when a calendar does. Updated status is always visible in our public repositories, which are the authoritative record of actual progress.</p>
+<p><strong>12.1 — 2026: Foundations.</strong>
+The year of building the base — visible, inspectable groundwork.
+- Official website — <em>available</em>.
+- Whitepaper — <em>in development, published upon completion</em>.
+- Brand identity and public documentation — <em>in development</em>.
+- Community foundations — <em>planned</em>: official channels, contribution guidelines and a code of conduct.
+- Security baseline — <em>ongoing</em>: account protection, repository hygiene and operational discipline for the project's own infrastructure.</p>
+<p><strong>12.2 — 2027: First Products.</strong>
+The year the "Build" pillar of our mission produces its first user-facing results.
+- First AI tools — <em>planned</em>: small, useful, security-reviewed releases rather than a large platform.
+- Developer resources — <em>planned</em>: initial documentation and examples that let others build with what we release.
+- Beta programs — <em>planned</em>: early versions opened to community testing, with feedback shaping iteration.
+- Open-source components — <em>planned</em>: parts of our tooling released under licenses chosen per Chapter 9's principles.</p>
+<p><strong>12.3 — 2028 and beyond: Research Expansion.</strong>
+The horizon where our research directions mature — or are honestly revised.
+- Verifiable AI computation — <em>research</em>: from study toward prototypes, if feasibility is demonstrated.
+- Distributed infrastructure — <em>research</em>: evaluating architectures for open, resilient AI workloads.
+- Governance mechanisms — <em>research</em>: informed by the growth stages described in Chapter 11.
+- Expanded ecosystem components — <em>planned/research</em>: the Chapter 8 components advance through their categories as work justifies — some may accelerate, others may be redefined or set aside, and this document will say which.</p>
+<p><strong>12.4 How to read this roadmap.</strong> Three commitments govern it. First, <em>status over schedule</em>: a delayed milestone is an update; inaccurate progress reporting erodes trust. Second, <em>public tracking</em>: progress is recorded where anyone can verify it. Third, <em>revision without spin</em>: when plans change — and some will — we will say what changed and why, in plain language.</p>
+<h2>13. Economic Approach</h2>
+<p>Economic systems shape incentives. Incentives shape behavior. For that reason, we believe the economic model of an AI infrastructure project should reward long-term contribution rather than short-term speculation.</p>
+<p>The purpose of AGIChainAI is not to issue a token. The purpose of AGIChainAI is to build AI infrastructure that creates real, sustainable utility. If a token is introduced in the future, it would exist as one component of that infrastructure — not as its reason for existing. The project is designed to remain viable with or without one. Real utility comes first; economic models follow it.</p>
+<p>Because the project is still in its early stages, no public token allocation, issuance schedule or economic distribution has been finalized. Those details, if introduced in the future, will be published in dedicated documentation after sufficient technical and organizational maturity. This chapter therefore explains the principles that will guide future economic decisions rather than presenting a completed economic model.</p>
+<p><strong>13.1 Long-Term Sustainability.</strong> We believe a sustainable ecosystem requires incentives that encourage long-term participation. Economic mechanisms should support: continued development; infrastructure maintenance; ecosystem growth; research; community participation; and long-term project resilience. Short-term market activity alone is not how the success of this project is defined.</p>
+<p><strong>13.2 Value Should Follow Contribution.</strong> We believe economic participation should reflect meaningful contribution. Different forms of contribution may be recognized, including: founding the project; long-term development; research; engineering; community building; education; and ecosystem maintenance. Contribution is broader than writing code alone. Long-term responsibility may represent a form of contribution distinct from periodic participation.</p>
+<p><strong>13.3 Founder Alignment.</strong> AGIChainAI was initiated through the vision, long-term commitment and responsibility of its founder. The founder established the project before an ecosystem, community or economic model existed. This early responsibility, together with the long-term commitment required to initiate and sustain the project, is recognized as a distinct form of contribution.</p>
+<p>The founder's contribution is unique in nature and is not intended to be measured solely by the same criteria applied to other forms of participation. The future economic model is intended to recognize the founder's unique role and long-term stewardship as one of its core design principles.</p>
+<p>Such recognition is intended to reflect: intellectual creation; long-term stewardship; continuing responsibility for the project's development; and early-stage personal commitment. The specific economic allocation, if applicable, will be defined transparently in future Tokenomics documentation before any public economic mechanism is introduced. The founder's role is intended to remain aligned with the long-term success of the project rather than short-term outcomes.</p>
+<p>Sustainable incentives begin with honest recognition of responsibility.</p>
+<p><strong>13.4 Community Participation.</strong> An open ecosystem depends on people who improve it. As the project matures, future economic mechanisms may recognize meaningful contributions from developers, researchers, educators, infrastructure providers and community members. Participation is intended to reward lasting value creation rather than simple activity.</p>
+<p><strong>13.5 Transparency.</strong> Future economic documentation should clearly explain: what exists; how it works; and why it exists. No significant economic mechanism should rely on hidden allocations or undisclosed incentives. Transparency builds trust more effectively than marketing.</p>
+<p><strong>13.6 Flexibility.</strong> Technology changes. Research changes. Projects evolve. For that reason, future economic mechanisms may evolve as well. Any significant changes should be explained publicly together with the reasoning behind them. Revision should improve sustainability, not reduce transparency.</p>
+<p><strong>13.7 Separate Tokenomics Documentation.</strong> A detailed Tokenomics document may be published in the future when the project reaches an appropriate level of maturity. That document, if published, is expected to define matters such as: economic architecture; allocation methodology; vesting policies; ecosystem incentives; treasury management; and governance-related mechanisms. This whitepaper intentionally does not define those implementation details. This whitepaper defines principles; the Tokenomics document, if published, defines implementation. The relationship is deliberate: principles are stable, implementations evolve.</p>
+<p><strong>Closing Statement.</strong> Our goal is not to design an economy around a token. Our goal is to build technology that creates real utility. Technology creates utility. Utility creates sustainable ecosystems. Sustainable ecosystems make responsible economic models possible. Without real utility, we do not believe any economic model can remain sustainable.</p>
+<h2>14. Community &amp; Open Development</h2>
+<p>Open infrastructure is not built by documents; it is built by people. This chapter describes how AGIChainAI approaches the community it hopes to earn — deliberately using the word <em>earn</em>, because communities are not announced into existence. They form around projects that are useful, honest and open to participation.</p>
+<p><strong>14.1 What exists today.</strong> Our community is at its beginning: public repositories anyone can read, this whitepaper developed in the open, and official contact channels listed on our website. We state this plainly rather than inflating early numbers — a small, genuine starting point is worth more than an audience purchased or exaggerated.</p>
+<p><strong>14.2 Open development as the default.</strong> Development happens in public repositories: code, documentation, design decisions and their reasoning. Contribution guidelines and a code of conduct are planned as community foundations mature. Contributions are reviewed on their merits, and meaningful contribution — in code, research, design, security review, education or community care — is recognized as described in Chapter 13.</p>
+<p><strong>14.3 What we ask of participants.</strong> Three things: honesty in claims, respect in disagreement, and responsibility toward users. The principles in this whitepaper apply to the community as much as to the founder — including the security practices of Chapter 10 and the no-hype discipline that governs this document.</p>
+<p><strong>14.4 What participants can ask of us.</strong> Symmetry matters. Anyone engaging with the project can expect: honest status reporting, public reasoning for significant decisions, credit for contribution, responsible handling of security reports, and communication that treats them as adults — no manufactured urgency, no fear of missing out, no promises this document would not make.</p>
+<p><strong>14.5 Safety of the community itself.</strong> Open communities attract bad actors; ours is designed with that expectation. Official channels are listed only on our website; we do not send unsolicited messages, and no one representing this project asks for private keys, seed phrases or payments. Impersonation, scam attempts and manipulation targeting our community are treated as security incidents under Chapter 10 — because protecting people is not limited to protecting software.</p>
+<h2>15. Conclusion</h2>
+<p><strong>15.1 Looking Forward.</strong> This whitepaper is a snapshot of AGIChainAI at the beginning of its journey. Like the project itself, it is expected to evolve as our understanding grows, our research matures and our community expands. Future revisions are not a sign of failure; they are the document working as intended.</p>
+<p><strong>15.2 What We Promise.</strong> We keep our promises few, so that we can keep them. We aim to: describe what exists honestly; distinguish clearly between implementation, planning and research; and revise our views when evidence changes.</p>
+<p><strong>15.3 What We Do Not Promise.</strong> AGIChainAI does not promise: guaranteed technical success; guaranteed commercial success; guaranteed timelines; or guaranteed economic outcomes. Instead, we promise disciplined work, transparent communication and responsible decision-making.</p>
+<p><strong>15.4 Final Statement.</strong> Intelligence may become one of humanity's most important infrastructures. We believe that infrastructure should be open where possible, secure where necessary, and always built with responsibility. AGIChainAI is our contribution toward that direction.</p>
+<p>The work begins here.</p>
+<hr />
+<p><strong>Disclaimer.</strong> This whitepaper describes the current understanding, intentions and research directions of AGIChainAI at the time of publication. Unless explicitly stated otherwise, descriptions of future components represent plans or research rather than existing functionality. Nothing in this document should be interpreted as financial, investment or legal advice, nor as a commitment to deliver specific technical implementations, timelines or economic mechanisms. Readers remain responsible for their own decisions and for compliance with the laws and regulatory obligations of their jurisdictions. As the project evolves, this document may be revised to reflect new evidence, practical experience and responsible design decisions.</p>
+<hr />
+<p><em>Build utility. Earn trust. Improve continuously.</em></p>
     </article>
 
   </main>
@@ -247,7 +342,6 @@
   </footer>
 
   <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
-
   <script src="../script.js"></script>
 </body>
 </html>
