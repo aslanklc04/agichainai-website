@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.2.2 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.3 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.2.2 — AGIChainAI</title>
+  <title>Consensus v0.3 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,9 +78,9 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.2.2 · Free to Start</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.3 · Method v1</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
-        differ. Start with free models in about 2 minutes, no credit card.
+        differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
       </div>
     </section>
@@ -145,7 +145,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.2.2 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.3 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -399,26 +399,54 @@
     h.textContent = "Consensus Analysis";
     const body = document.createElement("div");
     body.className = "synth-body thinking";
-    body.textContent = "Comparing answers…";
-    wrap.appendChild(h); wrap.appendChild(body);
+    body.textContent = "Running Consensus Method v1 (decompose, vote, label)…";
+    const meta = document.createElement("p");
+    meta.className = "hint";
+    meta.style.marginTop = "14px";
+    wrap.appendChild(h); wrap.appendChild(body); wrap.appendChild(meta);
     $("synthWrap").appendChild(wrap);
 
+    // --- Method v1, bias controls ---
+    // 1) shuffle answer order (position-bias mitigation)
+    const shuffled = answers.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = t;
+    }
+    // 2) anonymize: models become Answer A/B/C (self-preference & identity-bias mitigation)
+    const letters = "ABCDEFG";
+    const anonBlocks = shuffled.map((a, i) =>
+      "=== ANSWER " + letters[i] + " ===\n" + a.text).join("\n\n");
+
+    // 3) synthesizer chosen at random among connected models (disclosed to user)
+    const synthSlot = slots[Math.floor(Math.random() * slots.length)];
+
+    const N = shuffled.length;
     const prompt =
-      "You are a neutral analyst. A user asked several AI models the same question. " +
-      "Compare the answers and produce, concisely:\n" +
-      "1. AGREEMENT — points where models agree.\n" +
-      "2. DIFFERENCES — where they diverge, and a likely reason.\n" +
-      "3. SYNTHESIS — the best combined answer for the user.\n" +
-      "Do not invent facts not present in the answers.\n\n" +
-      "QUESTION:\n" + question + "\n\n" +
-      answers.map(a => "=== ANSWER FROM " + a.name + " ===\n" + a.text).join("\n\n");
+      "You are a neutral analyst. " + N + " different AI models answered the same question. " +
+      "The answers below are ANONYMIZED and SHUFFLED. Do not guess which model wrote which.\n\n" +
+      "Follow Consensus Method v1 exactly:\n" +
+      "STEP 1 - Break the answers into short atomic claims (one fact or statement each).\n" +
+      "STEP 2 - For each important claim, count how many of the " + N + " answers support it.\n" +
+      "STEP 3 - Label each claim:\n" +
+      "  [HIGH CONFIDENCE] = supported by all or most answers\n" +
+      "  [LOW CONFIDENCE - verify before trusting] = stated by only one answer and unsupported or contradicted by the rest (possible hallucination)\n" +
+      "  [PERSPECTIVE] = answers differ in interpretation or approach, not in facts (this is diversity, not error)\n" +
+      "STEP 4 - Output in exactly this structure:\n" +
+      "CLAIM ANALYSIS:\n- <claim> - supported by <x>/" + N + " - [LABEL]\n(list the most important claims)\n\n" +
+      "AGREEMENT:\n<what all or most answers agree on>\n\n" +
+      "DIFFERENCES:\n<where they diverge and the likely reason>\n\n" +
+      "SYNTHESIS:\n<best combined answer, built from HIGH CONFIDENCE claims; explicitly mark anything uncertain>\n\n" +
+      "Rules: never invent facts not present in the answers; do not force agreement where answers genuinely differ.\n\n" +
+      "QUESTION:\n" + question + "\n\n" + anonBlocks;
 
     try {
-      const synthSlot = slots[0];
       const r = await callSlot(synthSlot, prompt);
       body.classList.remove("thinking");
       body.textContent = r.text;
-      h.textContent = "Consensus Analysis · by " + synthSlot.name;
+      h.textContent = "Consensus Analysis · Method v1";
+      meta.textContent = "Synthesizer: " + synthSlot.name +
+        " (chosen at random; its own answer was included anonymously) · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v1 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
     } catch (err) {
       body.classList.remove("thinking");
       body.textContent = "Analysis failed: " + (err.message || err);
