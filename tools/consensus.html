@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.4.1 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.5 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.4.1 — AGIChainAI</title>
+  <title>Consensus v0.5 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.4.1 · Method v1</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.5 · Method v1</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -93,7 +93,7 @@
           <strong>Start free with ONE key:</strong> a single free Groq key
           (2 minutes, no card) powers the first THREE cards below — three
           different models, real consensus, one paste-paste-paste. Other free
-          providers are optional extras.
+          providers are optional extras. The Consensus Analysis is always performed by a FIXED independent judge — GPT-OSS 120B, the strongest free model — which never writes any of the answers.
         </div>
 
         <div class="steps">
@@ -145,7 +145,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.4.1 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.5 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -165,16 +165,16 @@
       model: "llama-3.3-70b-versatile",
       keyUrl: "https://console.groq.com/keys",
       note: "Fast + reliable — this key also works in the two cards below", on: true },
-    { id: "groq-oss", name: "GPT-OSS 120B", free: true, kind: "openai-compat",
+    { id: "groq-oss20", name: "GPT-OSS 20B", free: true, kind: "openai-compat",
       baseUrl: "https://api.groq.com/openai/v1",
-      model: "openai/gpt-oss-120b",
+      model: "openai/gpt-oss-20b",
       keyUrl: "https://console.groq.com/keys",
-      note: "OpenAI's open-weight flagship (120B) — paste the SAME Groq key", on: true },
-    { id: "groq-kimi", name: "Kimi K2", free: true, kind: "openai-compat",
+      note: "OpenAI open-weight, very fast — paste the SAME Groq key", on: true },
+    { id: "groq-qwen36", name: "Qwen 3.6", free: true, kind: "openai-compat",
       baseUrl: "https://api.groq.com/openai/v1",
-      model: "moonshotai/kimi-k2-instruct-0905",
+      model: "qwen/qwen3.6-27b",
       keyUrl: "https://console.groq.com/keys",
-      note: "Moonshot's 1-trillion-param MoE — paste the SAME Groq key", on: true },
+      note: "Alibaba's newest Qwen generation — paste the SAME Groq key", on: true },
     { id: "gemini", name: "Google Gemini", free: true, kind: "openai-compat",
       baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
       model: "gemini-2.5-flash-lite",
@@ -425,31 +425,32 @@
     h.textContent = "Consensus Analysis";
     const body = document.createElement("div");
     body.className = "synth-body thinking";
-    body.textContent = "Running Consensus Method v1 (decompose, vote, label)…";
+    body.textContent = "Running Consensus Method v1 (independent judge: GPT-OSS 120B)…";
     const meta = document.createElement("p");
     meta.className = "hint";
     meta.style.marginTop = "14px";
     wrap.appendChild(h); wrap.appendChild(body); wrap.appendChild(meta);
     $("synthWrap").appendChild(wrap);
 
-    // --- Method v1, bias controls ---
-    // 1) shuffle answer order (position-bias mitigation)
+    // --- bias controls ---
     const shuffled = answers.slice();
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       const t = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = t;
     }
-    // 2) anonymize: models become Answer A/B/C (self-preference & identity-bias mitigation)
     const letters = "ABCDEFG";
     const anonBlocks = shuffled.map((a, i) =>
       "=== ANSWER " + letters[i] + " ===\n" + a.text).join("\n\n");
 
-    // 3) synthesizer chosen at random among connected models (disclosed to user)
-    const synthSlot = slots[Math.floor(Math.random() * slots.length)];
+    // --- FIXED independent analyst: strongest free model, never an answerer ---
+    const ANALYST_MODEL = "openai/gpt-oss-120b";
+    const groqSrc = slots.find(s => s.baseUrl && s.baseUrl.indexOf("groq.com") !== -1);
+    const okSlots = slots.filter(s => answers.some(a => a.name === s.name));
 
     const N = shuffled.length;
     const prompt =
-      "You are a neutral analyst. " + N + " different AI models answered the same question. " +
+      "You are a neutral analyst. You did NOT write any of these answers. " + N +
+      " different AI models answered the same question. " +
       "The answers below are ANONYMIZED and SHUFFLED. Do not guess which model wrote which.\n\n" +
       "Follow Consensus Method v1 exactly:\n" +
       "STEP 1 - Break the answers into short atomic claims (one fact or statement each).\n" +
@@ -466,14 +467,38 @@
       "Rules: never invent facts not present in the answers; do not force agreement where answers genuinely differ.\n\n" +
       "QUESTION:\n" + question + "\n\n" + anonBlocks;
 
-    try {
-      const r = await callSlot(synthSlot, prompt, 4096);
+    async function runAnalyst(slot, label) {
+      const r = await callSlot(slot, prompt, 4096);
       body.classList.remove("thinking");
       body.textContent = cleanText(r.text);
       h.textContent = "Consensus Analysis · Method v1";
-      meta.textContent = "Synthesizer: " + synthSlot.name +
-        " (chosen at random; its own answer was included anonymously) · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v1 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
+      meta.textContent = label +
+        " · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v1 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
+    }
+
+    try {
+      if (groqSrc) {
+        const analyst = { name: "GPT-OSS 120B", kind: "openai-compat",
+          baseUrl: groqSrc.baseUrl, model: ANALYST_MODEL, key: groqSrc.key };
+        await runAnalyst(analyst,
+          "Judge: GPT-OSS 120B — fixed independent analyst; it did not write any of the answers");
+      } else {
+        // no Groq key available: fall back to a successful answerer, disclosed
+        const pool = okSlots.length ? okSlots : slots;
+        const backup = pool[Math.floor(Math.random() * pool.length)];
+        await runAnalyst(backup,
+          "Judge: " + backup.name + " (fallback — no Groq key for the independent analyst; its own answer was included anonymously)");
+      }
     } catch (err) {
+      // dedicated analyst failed: one backup attempt with a successful answerer
+      if (okSlots.length) {
+        try {
+          const backup = okSlots[Math.floor(Math.random() * okSlots.length)];
+          await runAnalyst(backup,
+            "Judge: " + backup.name + " (backup — independent analyst unavailable; its own answer was included anonymously)");
+          return;
+        } catch (err2) { /* fall through */ }
+      }
       body.classList.remove("thinking");
       body.textContent = "Analysis failed: " + (err.message || err);
     }
