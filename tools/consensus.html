@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.3.1 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.3.2 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.3.1 — AGIChainAI</title>
+  <title>Consensus v0.3.2 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.3.1 · Method v1</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.3.2 · Method v1</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -145,7 +145,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.3.1 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.3.2 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -325,18 +325,21 @@
           "anthropic-version": "2023-06-01",
           "anthropic-dangerous-direct-browser-access": "true"
         },
-        body: JSON.stringify({ model: slot.model, max_tokens: maxTokens || 1024,
+        body: JSON.stringify({ model: slot.model, max_tokens: maxTokens || 2048,
           messages: [{ role: "user", content: question }] })
       });
       if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
       const data = await res.json();
       text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
     } else {
+      const payload = { model: slot.model, max_tokens: maxTokens || 2048,
+        messages: [{ role: "user", content: question }] };
+      // Groq-hosted reasoning models (e.g. Qwen3): hide internal thinking server-side
+      if (slot.baseUrl.indexOf("groq.com") !== -1) payload.reasoning_format = "hidden";
       const res = await fetch(slot.baseUrl + "/chat/completions", {
         method: "POST",
         headers: { "content-type": "application/json", "authorization": "Bearer " + slot.key },
-        body: JSON.stringify({ model: slot.model, max_tokens: maxTokens || 1024,
-          messages: [{ role: "user", content: question }] })
+        body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
       const data = await res.json();
@@ -351,8 +354,13 @@
   function cleanText(t) {
     if (!t) return t;
     let out = t.replace(/<think>[\s\S]*?<\/think>/gi, "");
-    out = out.replace(/^[\s\S]*?<\/think>/i, ""); // unclosed leading think block
-    return out.trim() || t.trim();
+    out = out.replace(/^[\s\S]*?<\/think>/i, ""); // closed leading think block
+    out = out.trim();
+    if (!out || out.indexOf("<think>") !== -1) {
+      // reply was cut off inside internal reasoning
+      return "(This model spent its reply inside internal reasoning and was cut off. Ask again — v0.3.2 hides reasoning and raises the budget, so this should now be rare.)";
+    }
+    return out;
   }
 
   async function errMsg(res) {
@@ -449,7 +457,7 @@
       "QUESTION:\n" + question + "\n\n" + anonBlocks;
 
     try {
-      const r = await callSlot(synthSlot, prompt, 2048);
+      const r = await callSlot(synthSlot, prompt, 4096);
       body.classList.remove("thinking");
       body.textContent = cleanText(r.text);
       h.textContent = "Consensus Analysis · Method v1";
