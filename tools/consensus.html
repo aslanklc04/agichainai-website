@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.3 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.3.1 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.3 — AGIChainAI</title>
+  <title>Consensus v0.3.1 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.3 · Method v1</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.3.1 · Method v1</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -145,7 +145,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.3 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.3.1 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -296,11 +296,11 @@
   }
 
   // 429 (rate limit) and 503 (overload) are retried automatically with waits.
-  async function callSlot(slot, question) {
+  async function callSlot(slot, question, maxTokens) {
     const RETRY = [4000, 8000];        // wait 4s, then 8s, then give up
     for (let attempt = 0; ; attempt++) {
       try {
-        return await callOnce(slot, question);
+        return await callOnce(slot, question, maxTokens);
       } catch (err) {
         const msg = String(err && err.message || err);
         const retryable = msg.indexOf("HTTP 429") !== -1 || msg.indexOf("HTTP 503") !== -1;
@@ -313,7 +313,7 @@
     }
   }
 
-  async function callOnce(slot, question) {
+  async function callOnce(slot, question, maxTokens) {
     const t0 = performance.now();
     let text;
     if (slot.kind === "anthropic") {
@@ -325,7 +325,7 @@
           "anthropic-version": "2023-06-01",
           "anthropic-dangerous-direct-browser-access": "true"
         },
-        body: JSON.stringify({ model: slot.model, max_tokens: 1024,
+        body: JSON.stringify({ model: slot.model, max_tokens: maxTokens || 1024,
           messages: [{ role: "user", content: question }] })
       });
       if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
@@ -335,7 +335,7 @@
       const res = await fetch(slot.baseUrl + "/chat/completions", {
         method: "POST",
         headers: { "content-type": "application/json", "authorization": "Bearer " + slot.key },
-        body: JSON.stringify({ model: slot.model, max_tokens: 1024,
+        body: JSON.stringify({ model: slot.model, max_tokens: maxTokens || 1024,
           messages: [{ role: "user", content: question }] })
       });
       if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
@@ -345,6 +345,14 @@
     }
     const secs = ((performance.now() - t0) / 1000).toFixed(1);
     return { text: text || "(empty response)", secs };
+  }
+
+  // Reasoning models (e.g. Qwen) emit <think>...</think> blocks; hide them from display.
+  function cleanText(t) {
+    if (!t) return t;
+    let out = t.replace(/<think>[\s\S]*?<\/think>/gi, "");
+    out = out.replace(/^[\s\S]*?<\/think>/i, ""); // unclosed leading think block
+    return out.trim() || t.trim();
   }
 
   async function errMsg(res) {
@@ -365,9 +373,9 @@
       try {
         const r = await callSlot(slot, q);
         ui.body.classList.remove("thinking");
-        ui.body.textContent = r.text;
+        ui.body.textContent = cleanText(r.text);
         ui.meta.textContent = slot.model + " · " + r.secs + "s";
-        return { name: slot.name, ok: true, text: r.text };
+        return { name: slot.name, ok: true, text: cleanText(r.text) };
       } catch (err) {
         ui.card.classList.add("err");
         ui.body.classList.remove("thinking");
@@ -441,9 +449,9 @@
       "QUESTION:\n" + question + "\n\n" + anonBlocks;
 
     try {
-      const r = await callSlot(synthSlot, prompt);
+      const r = await callSlot(synthSlot, prompt, 2048);
       body.classList.remove("thinking");
-      body.textContent = r.text;
+      body.textContent = cleanText(r.text);
       h.textContent = "Consensus Analysis · Method v1";
       meta.textContent = "Synthesizer: " + synthSlot.name +
         " (chosen at random; its own answer was included anonymously) · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v1 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
