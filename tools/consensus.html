@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.6.2 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.6.3 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.6.2 — AGIChainAI</title>
+  <title>Consensus v0.6.3 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.6.2 · Method v2</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.6.3 · Method v2</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -146,7 +146,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.6.2 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.6.3 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -365,9 +365,25 @@
         res = await doFetch();
       }
       if (!res.ok) throw new Error("HTTP " + res.status + " " + (await errMsg(res)));
-      const data = await res.json();
+      let data = await res.json();
       text = data.choices && data.choices[0] && data.choices[0].message
         ? data.choices[0].message.content : "";
+      // reasoning models sometimes spend the whole budget thinking and return nothing:
+      // retry once, visible reasoning, larger budget, then strip the think block.
+      if (!String(text || "").trim() && payload.reasoning_format) {
+        delete payload.reasoning_format;
+        payload.max_tokens = (maxTokens || 2048) * 2;
+        const res2 = await fetch(slot.baseUrl + "/chat/completions", {
+          method: "POST",
+          headers: { "content-type": "application/json", "authorization": "Bearer " + slot.key },
+          body: JSON.stringify(payload)
+        });
+        if (res2.ok) {
+          data = await res2.json();
+          text = data.choices && data.choices[0] && data.choices[0].message
+            ? data.choices[0].message.content : "";
+        }
+      }
     }
     const secs = ((performance.now() - t0) / 1000).toFixed(1);
     return { text: text || "(empty response)", secs };
@@ -471,9 +487,9 @@
       "Each answer carries an anonymous family tag (family-1, family-2...) showing which AI LAB " +
       "produced it — answers from the same family are NOT independent evidence.\n\n" +
       "Follow Consensus Method v2 exactly:\n" +
-      "STEP 1 - Break the answers into short atomic claims (one fact or proposition each). Then MERGE claims that mean the same "
-      "thing across answers even when the wording differs — different labels for the same idea (for example 'legal regulation', "
-      "'public regulation' and 'binding standards') are ONE claim supported by several answers, not separate claims. "
+      "STEP 1 - Break the answers into short atomic claims (one fact or proposition each). Then MERGE claims that mean the same " +
+      "thing across answers even when the wording differs — different labels for the same idea (for example 'legal regulation', " +
+      "'public regulation' and 'binding standards') are ONE claim supported by several answers, not separate claims. " +
       "Merge first, count second: fragmenting paraphrases would hide real agreement.\n" +
       "STEP 2 - For each important claim, build its profile: support s (how many of the " + N + " answers support it), " +
       "families f (how many DIFFERENT families among supporters), contradictions c (how many answers explicitly contradict it).\n" +
