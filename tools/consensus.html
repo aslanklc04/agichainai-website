@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.5.1 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.6 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.5.1 — AGIChainAI</title>
+  <title>Consensus v0.6 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.5.1 · Method v1</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.6 · Method v2</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -108,9 +108,8 @@
           <strong>Privacy by architecture:</strong> this page has no backend.
           Keys live in this tab's memory only — never in storage, cookies or
           any server we run. Requests go directly from your browser to each
-          provider's official API. Every line is
-          <a href="https://github.com/aslanklc04/agichainai-website/blob/main/tools/consensus.html" rel="noopener" target="_blank">open source and verifiable</a>.
-          Use only on a device you trust.
+          provider's official API — nothing passes through any server we
+          operate. Use only on a device you trust.
         </div>
 
         <button class="btn btn-primary" id="startBtn">Start Session</button>
@@ -147,7 +146,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.5.1 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.6 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -166,46 +165,46 @@
       baseUrl: "https://api.groq.com/openai/v1",
       model: "llama-3.3-70b-versatile",
       keyUrl: "https://console.groq.com/keys",
-      note: "Fast + reliable — this key also works in the two cards below", on: true },
+      note: "Fast + reliable — this key also works in the two cards below", family: "meta", on: true },
     { id: "groq-oss20", name: "GPT-OSS 20B", free: true, kind: "openai-compat",
       baseUrl: "https://api.groq.com/openai/v1",
       model: "openai/gpt-oss-20b",
       keyUrl: "https://console.groq.com/keys",
-      note: "OpenAI open-weight, very fast — paste the SAME Groq key", on: true },
+      note: "OpenAI open-weight, very fast — paste the SAME Groq key", family: "openai", on: true },
     { id: "groq-qwen36", name: "Qwen 3.6", free: true, kind: "openai-compat",
       baseUrl: "https://api.groq.com/openai/v1",
       model: "qwen/qwen3.6-27b",
       keyUrl: "https://console.groq.com/keys",
-      note: "Alibaba's newest Qwen generation — paste the SAME Groq key", on: true },
+      note: "Alibaba's newest Qwen generation — paste the SAME Groq key", family: "alibaba", on: true },
     { id: "gemini", name: "Google Gemini", free: true, kind: "openai-compat",
       baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
       model: "gemini-2.5-flash-lite",
       keyUrl: "https://aistudio.google.com/apikey",
-      note: "Google AI Studio key, no card needed", on: true },
+      note: "Google AI Studio key, no card needed", family: "google", on: false },
     { id: "deepseek", name: "DeepSeek", free: true, kind: "openai-compat",
       baseUrl: "https://openrouter.ai/api/v1",
       model: "deepseek/deepseek-chat-v3-0324:free",
       keyUrl: "https://openrouter.ai/keys",
-      note: "Free via OpenRouter — one key also unlocks Qwen below", on: false },
+      note: "Free via OpenRouter — one key also unlocks Qwen below", family: "deepseek", on: false },
     { id: "qwen", name: "Qwen", free: true, kind: "openai-compat",
       baseUrl: "https://openrouter.ai/api/v1",
       model: "qwen/qwen3-14b:free",
       keyUrl: "https://openrouter.ai/keys",
-      note: "Free via OpenRouter — same key as DeepSeek works here", on: false },
+      note: "Free via OpenRouter — same key as DeepSeek works here", family: "alibaba", on: false },
     { id: "openrouter", name: "OpenRouter (any)", free: true, kind: "openai-compat",
       baseUrl: "https://openrouter.ai/api/v1",
       model: "meta-llama/llama-3.3-70b-instruct:free",
       keyUrl: "https://openrouter.ai/keys",
-      note: "One key, many models — ':free' models cost nothing", on: false },
+      note: "One key, many models — ':free' models cost nothing", family: "meta", on: false },
     { id: "anthropic", name: "Claude", free: false, kind: "anthropic",
       model: "claude-sonnet-4-6",
       keyUrl: "https://console.anthropic.com/settings/keys",
-      note: "Anthropic API (paid)", on: false },
+      note: "Anthropic API (paid)", family: "anthropic", on: false },
     { id: "openai", name: "GPT", free: false, kind: "openai-compat",
       baseUrl: "https://api.openai.com/v1",
       model: "gpt-4o-mini",
       keyUrl: "https://platform.openai.com/api-keys",
-      note: "OpenAI API (paid)", on: false }
+      note: "OpenAI API (paid)", family: "openai", on: false }
   ];
 
   let slots = [];
@@ -257,7 +256,7 @@
     PROVIDERS.forEach((p) => {
       const key = $("key-" + p.id).value.trim();
       if ($("en-" + p.id).checked && key) {
-        slots.push({ name: p.name, kind: p.kind, key,
+        slots.push({ name: p.name, kind: p.kind, key, family: p.family || p.id,
           model: $("model-" + p.id).value.trim() || p.model,
           baseUrl: p.baseUrl });
       }
@@ -395,7 +394,7 @@
         ui.body.classList.remove("thinking");
         ui.body.textContent = cleanText(r.text);
         ui.meta.textContent = slot.model + " · " + r.secs + "s";
-        return { name: slot.name, ok: true, text: cleanText(r.text) };
+        return { name: slot.name, family: slot.family, ok: true, text: cleanText(r.text) };
       } catch (err) {
         ui.card.classList.add("err");
         ui.body.classList.remove("thinking");
@@ -427,7 +426,7 @@
     h.textContent = "Consensus Analysis";
     const body = document.createElement("div");
     body.className = "synth-body thinking";
-    body.textContent = "Running Consensus Method v1 (independent judge: GPT-OSS 120B)…";
+    body.textContent = "Running Consensus Method v2 (independent judge: GPT-OSS 120B)…";
     const meta = document.createElement("p");
     meta.className = "hint";
     meta.style.marginTop = "14px";
@@ -441,8 +440,12 @@
       const t = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = t;
     }
     const letters = "ABCDEFG";
+    // anonymous family tags: reveal lab-independence, never model identity
+    const famIndex = {};
+    let famCount = 0;
+    shuffled.forEach(a => { if (!(a.family in famIndex)) { famCount++; famIndex[a.family] = "family-" + famCount; } });
     const anonBlocks = shuffled.map((a, i) =>
-      "=== ANSWER " + letters[i] + " ===\n" + a.text).join("\n\n");
+      "=== ANSWER " + letters[i] + " (" + famIndex[a.family] + ") ===\n" + a.text).join("\n\n");
 
     // --- FIXED independent analyst: strongest free model, never an answerer ---
     const ANALYST_MODEL = "openai/gpt-oss-120b";
@@ -452,20 +455,24 @@
     const N = shuffled.length;
     const prompt =
       "You are a neutral analyst. You did NOT write any of these answers. " + N +
-      " different AI models answered the same question. " +
-      "The answers below are ANONYMIZED and SHUFFLED. Do not guess which model wrote which.\n\n" +
-      "Follow Consensus Method v1 exactly:\n" +
-      "STEP 1 - Break the answers into short atomic claims (one fact or statement each).\n" +
-      "STEP 2 - For each important claim, count how many of the " + N + " answers support it.\n" +
-      "STEP 3 - Label each claim:\n" +
-      "  [HIGH CONFIDENCE] = supported by all or most answers\n" +
-      "  [LOW CONFIDENCE - verify before trusting] = stated by only one answer and unsupported or contradicted by the rest (possible hallucination)\n" +
-      "  [PERSPECTIVE] = answers differ in interpretation or approach, not in facts (this is diversity, not error)\n" +
+      " different AI models answered the same question. Answers are ANONYMIZED and SHUFFLED. " +
+      "Each answer carries an anonymous family tag (family-1, family-2...) showing which AI LAB " +
+      "produced it — answers from the same family are NOT independent evidence.\n\n" +
+      "Follow Consensus Method v2 exactly:\n" +
+      "STEP 1 - Break the answers into short atomic claims (one fact each).\n" +
+      "STEP 2 - For each important claim, build its profile: support s (how many of the " + N + " answers support it), " +
+      "families f (how many DIFFERENT families among supporters), contradictions c (how many answers explicitly contradict it).\n" +
+      "STEP 3 - Assign the label using these NON-COMPENSATORY rules IN ORDER (first match wins; no amount of support can override an earlier rule):\n" +
+      "  R1: the difference is interpretation/approach, not fact -> [PERSPECTIVE]\n" +
+      "  R2: c >= 1 -> the claim can NEVER be HIGH: if s > c -> [CONTESTED - majority supports, verify]; if s <= c -> [LOW - likely error]\n" +
+      "  R3: supporters come from fewer than 2 families -> [UNVERIFIED - single source]\n" +
+      "  R4: s >= 2 AND f >= 2 AND c = 0 -> [HIGH CONFIDENCE]\n" +
       "STEP 4 - Output in exactly this structure:\n" +
-      "CLAIM ANALYSIS:\n- <claim> - supported by <x>/" + N + " - [LABEL]\n(list the most important claims)\n\n" +
+      "CLAIM PROFILES:\n- <claim> | support <s>/" + N + " | families <f> | contradicted <c> | [LABEL]\n(list the most important claims)\n\n" +
       "AGREEMENT:\n<what all or most answers agree on>\n\n" +
       "DIFFERENCES:\n<where they diverge and the likely reason>\n\n" +
-      "SYNTHESIS:\n<best combined answer, built from HIGH CONFIDENCE claims; explicitly mark anything uncertain>\n\n" +
+      "SYNTHESIS:\n<combined answer built ONLY from HIGH CONFIDENCE claims; if a CONTESTED or UNVERIFIED claim must be mentioned, mark it inline; NEVER include LOW claims>\n\n" +
+      "METHOD: Consensus Method v2 | judge: independent | answers: " + N + " | families: " + famCount + "\n\n" +
       "Rules: never invent facts not present in the answers; do not force agreement where answers genuinely differ.\n\n" +
       "QUESTION:\n" + question + "\n\n" + anonBlocks;
 
@@ -473,9 +480,9 @@
       const r = await callSlot(slot, prompt, 4096);
       body.classList.remove("thinking");
       body.textContent = cleanText(r.text);
-      h.textContent = "Consensus Analysis · Method v1";
+      h.textContent = "Consensus Analysis · Method v2";
       meta.textContent = label +
-        " · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v1 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
+        " · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v2 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
     }
 
     try {
