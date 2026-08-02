@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Consensus Review — screen literature in your own language. Two independent AI reviewers, disagreement queue, Cohen's kappa and PRISMA counts. Your records never leave your browser.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.agichainai.com/tools/review.html">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#05070d">
+  <title>Consensus Review v0.1 — AGIChainAI</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 0 80px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+    .card h2 { font-size: 1.05rem; margin-bottom: 4px; }
+    .hint { color: var(--text-dim); font-size: 0.84rem; margin-bottom: 14px; }
+    .step-num { display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; background: rgba(0,216,255,0.15); color: var(--primary); font-weight: 800; font-size: 0.8rem; margin-right: 8px; }
+    label.f { display: block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin: 12px 0 5px; }
+    input[type=text], input[type=password], select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04); color: var(--text); font-family: inherit; font-size: 0.92rem;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--border-hover); }
+    select option { background: var(--bg-alt); }
+    .drop { border: 2px dashed var(--border-hover); border-radius: var(--radius); padding: 30px; text-align: center; color: var(--text-muted); cursor: pointer; transition: background .2s; }
+    .drop:hover, .drop.over { background: rgba(0,216,255,0.06); }
+    .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+    .row > div { flex: 1; min-width: 190px; }
+    .bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.07); overflow: hidden; margin: 14px 0 8px; }
+    .bar > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width .3s; }
+    .stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-muted); }
+    .stats b { color: var(--text); font-size: 1.15rem; display: block; }
+    .rec { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px; background: rgba(255,255,255,0.02); }
+    .rec h4 { font-size: 0.96rem; margin-bottom: 4px; color: var(--text); }
+    .rec .meta { font-size: 0.76rem; color: var(--text-dim); margin-bottom: 10px; }
+    .rec .ab { font-size: 0.87rem; color: var(--text-muted); line-height: 1.6; max-height: 150px; overflow-y: auto; white-space: pre-wrap; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+    @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+    .pane { border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+    .pane h5 { font-size: 0.72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+    .verdicts { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+    .v { font-size: 0.8rem; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-muted); flex: 1; min-width: 220px; }
+    .v b { display: block; margin-bottom: 3px; }
+    .inc { color: var(--accent); }
+    .exc { color: #ff9db9; }
+    .btn-small { padding: 8px 18px; font-size: 0.83rem; }
+    .tagline { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; }
+    .t-inc { background: rgba(48,255,178,.15); color: var(--accent); border: 1px solid rgba(48,255,178,.4); }
+    .t-exc { background: rgba(255,93,143,.12); color: #ff9db9; border: 1px solid rgba(255,93,143,.35); }
+    .t-dis { background: rgba(255,196,0,.12); color: #ffd166; border: 1px solid rgba(255,196,0,.4); }
+    .t-err { background: rgba(255,255,255,.06); color: var(--text-dim); border: 1px solid var(--border); }
+    .status-tag { display:inline-block; padding:4px 12px; border-radius:999px; border:1px solid var(--border-hover); color:var(--primary); font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; margin-left:10px; vertical-align:middle; }
+    .warn { border-left: 3px solid var(--accent); background: rgba(48,255,178,0.06); padding: 13px 16px; font-size: 0.86rem; color: var(--text-muted); border-radius: 0 10px 10px 0; margin: 14px 0; }
+    .warn strong { color: var(--accent); }
+    .hidden { display: none !important; }
+    .kappa { font-size: 0.86rem; color: var(--text-muted); margin-top: 10px; }
+    .kappa b { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header class="navbar scrolled" id="navbar">
+    <nav class="nav-container" aria-label="Main navigation">
+      <a href="../index.html" class="nav-logo" aria-label="AGIChainAI home">
+        <img src="../assets/logo.svg" alt="AGIChainAI logo" width="36" height="36">
+        <span class="nav-logo-text">AGIChain<span class="logo-accent">AI</span></span>
+      </a>
+      <ul class="nav-menu" style="display:flex;">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="consensus.html" class="nav-link">Consensus</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="page-hero" style="padding-bottom: 20px;">
+      <div class="container">
+        <span class="section-eyebrow">First Products · Shipped Work</span>
+        <h1>Consensus <span class="gradient-text">Review</span><span class="status-tag">v0.1 · Preview</span></h1>
+        <p>Screen literature in your own language. Every record is read by two
+        independent AI reviewers from different labs; they agree, or it goes to
+        your queue. Records never leave your browser.</p>
+      </div>
+    </section>
+
+    <section class="container wrap">
+
+      <!-- 1: KEY -->
+      <div class="card" id="cardKey">
+        <h2><span class="step-num">1</span>Connect</h2>
+        <p class="hint">One free Groq key powers all three roles: translator + two independent reviewers. Keys stay in this tab's memory only.</p>
+        <div class="row">
+          <div>
+            <label class="f" for="key">Groq API key</label>
+            <input type="password" id="key" placeholder="gsk_..." autocomplete="off">
+          </div>
+          <div style="flex:0 0 auto;">
+            <a class="btn btn-secondary btn-small" href="https://console.groq.com/keys" target="_blank" rel="noopener">Get free key ↗</a>
+          </div>
+        </div>
+        <div class="warn">
+          <strong>Reviewer A:</strong> GPT-OSS 120B (OpenAI family) ·
+          <strong>Reviewer B:</strong> Qwen 3.6 (Alibaba family) ·
+          <strong>Translator:</strong> Llama 3.3 70B (Meta family).
+          Two different labs means two genuinely independent opinions — the same
+          principle behind dual-reviewer screening in systematic reviews.
+        </div>
+      </div>
+
+      <!-- 2: FILE -->
+      <div class="card" id="cardFile">
+        <h2><span class="step-num">2</span>Load your records</h2>
+        <p class="hint">Export from PubMed, Scopus, Web of Science, Scholar, DergiPark… Accepted: .ris .nbib .bib .csv .txt</p>
+        <div class="drop" id="drop">
+          <div style="font-size:1.6rem;margin-bottom:6px;">📄</div>
+          Drop your file here, or click to choose
+          <input type="file" id="file" class="hidden" accept=".ris,.nbib,.bib,.txt,.csv">
+        </div>
+        <div id="fileInfo" class="hint" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- 3: CRITERIA -->
+      <div class="card" id="cardCrit">
+        <h2><span class="step-num">3</span>Your criteria &amp; language</h2>
+        <p class="hint">Write criteria in any language you like — the reviewers will follow them and answer in your language.</p>
+        <label class="f" for="crit">Inclusion / exclusion criteria</label>
+        <textarea id="crit" placeholder="INCLUDE: randomized controlled trials, adults 18+, published 2015 or later, outcome measured with a validated scale.&#10;EXCLUDE: animal studies, case reports, reviews, protocols without results."></textarea>
+        <div class="row">
+          <div>
+            <label class="f" for="lang">Work in this language</label>
+            <select id="lang">
+              <option value="Turkish">Türkçe</option>
+              <option value="English">English</option>
+              <option value="Spanish">Español</option>
+              <option value="Portuguese">Português</option>
+              <option value="French">Français</option>
+              <option value="German">Deutsch</option>
+              <option value="Arabic">العربية</option>
+              <option value="Russian">Русский</option>
+              <option value="Indonesian">Bahasa Indonesia</option>
+              <option value="Japanese">日本語</option>
+            </select>
+          </div>
+          <div>
+            <label class="f" for="tr">Translate titles &amp; abstracts</label>
+            <select id="tr">
+              <option value="yes">Yes — show original + translation</option>
+              <option value="no">No — originals only (faster, cheaper)</option>
+            </select>
+          </div>
+          <div>
+            <label class="f" for="limit">How many records this run</label>
+            <input type="text" id="limit" value="all">
+          </div>
+        </div>
+      </div>
+
+      <!-- 4: RUN -->
+      <div class="card" id="cardRun">
+        <h2><span class="step-num">4</span>Screen</h2>
+        <p class="hint">You can pause any time; progress is kept. Free-tier rate limits are retried automatically.</p>
+        <div class="row" style="align-items:center;">
+          <div style="flex:0 0 auto;"><button class="btn btn-primary" id="startBtn">Start screening</button></div>
+          <div style="flex:0 0 auto;"><button class="btn btn-secondary btn-small hidden" id="pauseBtn">Pause</button></div>
+          <div style="flex:0 0 auto;"><button class="btn btn-secondary btn-small hidden" id="exportBtn">Download results (Excel/CSV)</button></div>
+        </div>
+        <div class="bar"><i id="bar"></i></div>
+        <div class="stats" id="stats"></div>
+        <div class="kappa hidden" id="kappa"></div>
+      </div>
+
+      <!-- 5: QUEUE -->
+      <div class="card hidden" id="cardQueue">
+        <h2><span class="step-num">5</span>Your decision queue</h2>
+        <p class="hint">Only records where the two reviewers disagreed. This is the work that actually needs a human.</p>
+        <div id="queue"></div>
+      </div>
+
+      <div class="warn">
+        <strong>Honest limits:</strong> machine translation can shift meaning, so
+        originals are always shown next to translations and any translation-driven
+        disagreement lands in your queue by design. Two AI reviewers agreeing is
+        evidence, not proof — if both models share the same blind spot, they will
+        agree and be wrong. This tool screens titles and abstracts; full-text
+        eligibility and final inclusion remain your decision, as your method
+        requires.
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>© 2026 AGIChainAI. Consensus Review v0.1 — preview.</p>
+      <p>No tracking · No cookies · No server · <a href="../pages/privacy.html">Privacy</a> · <a href="../index.html">Home</a></p>
+    </div>
+  </footer>
+
+<script>
+"use strict";
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const BASE = "https://api.groq.com/openai/v1";
+  const REVIEWER_A = { name: "Reviewer A", family: "openai", model: "openai/gpt-oss-120b" };
+  const REVIEWER_B = { name: "Reviewer B", family: "alibaba", model: "qwen/qwen3.6-27b" };
+  const TRANSLATOR = { name: "Translator", family: "meta", model: "llama-3.3-70b-versatile" };
+
+  let apiKey = null;
+  let records = [];
+  let running = false, paused = false, cursor = 0;
+
+  /* ---------------- parsers ---------------- */
+  function parseRIS(text) {
+    const out = [];
+    let cur = null;
+    text.split(/\r?\n/).forEach(line => {
+      const m = line.match(/^([A-Z][A-Z0-9])\s+-\s?(.*)$/);
+      if (m) {
+        const tag = m[1], val = m[2].trim();
+        if (tag === "TY" || (tag === "PMID" && !cur)) { if (cur) out.push(cur); cur = { title: "", abstract: "", year: "", authors: "", lang: "", journal: "" }; }
+        if (!cur) cur = { title: "", abstract: "", year: "", authors: "", lang: "", journal: "" };
+        if (tag === "TI" || tag === "T1" || tag === "BT") cur.title += (cur.title ? " " : "") + val;
+        else if (tag === "AB" || tag === "N2") cur.abstract += (cur.abstract ? " " : "") + val;
+        else if (tag === "PY" || tag === "Y1" || tag === "DA") { if (!cur.year) cur.year = (val.match(/\d{4}/) || [""])[0]; }
+        else if (tag === "AU" || tag === "A1") cur.authors += (cur.authors ? "; " : "") + val;
+        else if (tag === "LA") cur.lang = val;
+        else if (tag === "JO" || tag === "JF" || tag === "T2") { if (!cur.journal) cur.journal = val; }
+        else if (tag === "ER") { if (cur) { out.push(cur); cur = null; } }
+      } else if (cur && line.trim() && !line.match(/^[A-Z][A-Z0-9]\s+-/)) {
+        if (cur.abstract) cur.abstract += " " + line.trim();
+      }
+    });
+    if (cur) out.push(cur);
+    return out;
+  }
+
+  function parseNBIB(text) {
+    const out = [];
+    const blocks = text.split(/\n\s*\n/);
+    blocks.forEach(b => {
+      if (!b.trim()) return;
+      const rec = { title: "", abstract: "", year: "", authors: "", lang: "", journal: "" };
+      let last = null;
+      b.split(/\r?\n/).forEach(line => {
+        const m = line.match(/^([A-Z]{2,4})\s*-\s?(.*)$/);
+        if (m) {
+          last = m[1];
+          const v = m[2].trim();
+          if (last === "TI") rec.title += (rec.title ? " " : "") + v;
+          else if (last === "AB") rec.abstract += (rec.abstract ? " " : "") + v;
+          else if (last === "DP") rec.year = (v.match(/\d{4}/) || [""])[0];
+          else if (last === "AU") rec.authors += (rec.authors ? "; " : "") + v;
+          else if (last === "LA") rec.lang = v;
+          else if (last === "JT") rec.journal = v;
+        } else if (last && line.match(/^\s{4,}/)) {
+          const v = line.trim();
+          if (last === "TI") rec.title += " " + v;
+          else if (last === "AB") rec.abstract += " " + v;
+        }
+      });
+      if (rec.title) out.push(rec);
+    });
+    return out;
+  }
+
+  function parseBib(text) {
+    const out = [];
+    const entries = text.split(/@\w+\s*\{/).slice(1);
+    entries.forEach(e => {
+      const get = (f) => {
+        const m = e.match(new RegExp(f + "\\s*=\\s*[{\"]([\\s\\S]*?)[}\"]\\s*,?\\s*\\n", "i"));
+        return m ? m[1].replace(/[{}]/g, "").replace(/\s+/g, " ").trim() : "";
+      };
+      const rec = { title: get("title"), abstract: get("abstract"), year: get("year"),
+                    authors: get("author"), lang: get("language"), journal: get("journal") };
+      if (rec.title) out.push(rec);
+    });
+    return out;
+  }
+
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) {
+        if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (ch === '"') q = false;
+        else cell += ch;
+      } else {
+        if (ch === '"') q = true;
+        else if (ch === "," || ch === ";" || ch === "\t") { row.push(cell); cell = ""; }
+        else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (ch !== "\r") cell += ch;
+      }
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    if (rows.length < 2) return [];
+    const head = rows[0].map(h => h.toLowerCase().trim());
+    const find = (names) => { for (const n of names) { const i = head.findIndex(h => h === n || h.indexOf(n) !== -1); if (i !== -1) return i; } return -1; };
+    const ti = find(["title", "başlık", "titulo", "titre"]);
+    const ab = find(["abstract", "özet", "ozet", "resumen", "summary"]);
+    const yr = find(["year", "yıl", "yil", "publication year", "date"]);
+    const au = find(["author", "yazar", "autores"]);
+    const jo = find(["journal", "source title", "dergi", "publication"]);
+    const out = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r.length) continue;
+      const rec = {
+        title: ti !== -1 ? (r[ti] || "").trim() : "",
+        abstract: ab !== -1 ? (r[ab] || "").trim() : "",
+        year: yr !== -1 ? ((r[yr] || "").match(/\d{4}/) || [""])[0] : "",
+        authors: au !== -1 ? (r[au] || "").trim() : "",
+        journal: jo !== -1 ? (r[jo] || "").trim() : "",
+        lang: ""
+      };
+      if (rec.title) out.push(rec);
+    }
+    return out;
+  }
+
+  function parseAny(name, text) {
+    const n = name.toLowerCase();
+    if (n.endsWith(".bib")) return parseBib(text);
+    if (n.endsWith(".csv")) return parseCSV(text);
+    if (n.endsWith(".nbib")) return parseNBIB(text);
+    if (/^\s*(PMID|TI)\s*-\s/m.test(text) && !/^TY\s+-/m.test(text)) return parseNBIB(text);
+    if (/^TY\s+-/m.test(text) || /^\s*[A-Z][A-Z0-9]\s+-\s/m.test(text)) return parseRIS(text);
+    if (text.indexOf("@") === 0 || /@\w+\s*\{/.test(text)) return parseBib(text);
+    return parseCSV(text);
+  }
+
+  /* ---------------- file loading ---------------- */
+  const drop = $("drop"), fileInput = $("file");
+  drop.addEventListener("click", () => fileInput.click());
+  drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+  drop.addEventListener("drop", e => {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener("change", e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+
+  function readFile(f) {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const parsed = parseAny(f.name, r.result);
+        records = parsed.filter(p => p.title).map((p, i) => ({
+          id: i + 1, title: p.title, abstract: p.abstract, year: p.year,
+          authors: p.authors, journal: p.journal, lang: p.lang,
+          trTitle: "", trAbstract: "",
+          a: null, b: null, status: "pending", final: "", note: ""
+        }));
+        cursor = 0;
+        $("fileInfo").textContent = records.length
+          ? f.name + " — " + records.length + " records loaded" +
+            (records.filter(r2 => !r2.abstract).length ? " (" + records.filter(r2 => !r2.abstract).length + " without abstract — screened on title only)" : "")
+          : f.name + " — could not read any records. Try exporting as RIS or CSV.";
+        renderStats();
+      } catch (err) {
+        $("fileInfo").textContent = "Could not parse this file: " + (err.message || err);
+      }
+    };
+    r.readAsText(f, "utf-8");
+  }
+
+  /* ---------------- API ---------------- */
+  async function call(model, prompt, maxTokens) {
+    const RETRY = [4000, 9000, 15000];
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const payload = { model: model, max_tokens: maxTokens || 700, temperature: 0,
+          messages: [{ role: "user", content: prompt }] };
+        if (/qwen3|gpt-oss/i.test(model)) payload.reasoning_format = "hidden";
+        let res = await fetch(BASE + "/chat/completions", {
+          method: "POST",
+          headers: { "content-type": "application/json", "authorization": "Bearer " + apiKey },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok && res.status === 400 && payload.reasoning_format) {
+          delete payload.reasoning_format;
+          res = await fetch(BASE + "/chat/completions", {
+            method: "POST",
+            headers: { "content-type": "application/json", "authorization": "Bearer " + apiKey },
+            body: JSON.stringify(payload)
+          });
+        }
+        if (!res.ok) {
+          let msg = "";
+          try { const j = await res.json(); msg = (j.error && j.error.message) || ""; } catch (e) {}
+          throw new Error("HTTP " + res.status + " " + msg);
+        }
+        const data = await res.json();
+        let t = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : "";
+        t = String(t || "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+        return t;
+      } catch (err) {
+        const m = String(err && err.message || err);
+        const retryable = m.indexOf("HTTP 429") !== -1 || m.indexOf("HTTP 503") !== -1 || m.indexOf("Failed to fetch") !== -1;
+        if (retryable && attempt < RETRY.length) {
+          await sleep(RETRY[attempt]);
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  function jsonFrom(text) {
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try { return JSON.parse(m[0]); } catch (e) { return null; }
+  }
+
+  /* ---------------- screening ---------------- */
+  async function translate(rec, lang) {
+    const src = "TITLE: " + rec.title + (rec.abstract ? "\nABSTRACT: " + rec.abstract : "");
+    const p = "Translate the following bibliographic record into " + lang + ". " +
+      "Keep technical and medical terms accurate; do not summarize, do not add anything. " +
+      'Reply ONLY as JSON: {"title":"...","abstract":"..."}\n\n' + src;
+    const out = await call(TRANSLATOR.model, p, 900);
+    const j = jsonFrom(out);
+    if (j) { rec.trTitle = j.title || ""; rec.trAbstract = j.abstract || ""; }
+  }
+
+  async function screenOne(rec, reviewer, criteria, lang) {
+    const body = "TITLE: " + rec.title + "\nABSTRACT: " + (rec.abstract || "(no abstract available)") +
+      (rec.year ? "\nYEAR: " + rec.year : "") + (rec.journal ? "\nSOURCE: " + rec.journal : "");
+    const p = "You are an independent reviewer screening records for a literature review. " +
+      "Decide ONLY from the title and abstract below, strictly against the criteria. " +
+      "If the information is insufficient to exclude with confidence, choose MAYBE rather than guessing. " +
+      "Write your reason in " + lang + ", one short sentence.\n\n" +
+      "CRITERIA:\n" + criteria + "\n\nRECORD:\n" + body + "\n\n" +
+      'Reply ONLY as JSON: {"decision":"INCLUDE|EXCLUDE|MAYBE","reason":"..."}';
+    const out = await call(reviewer.model, p, 400);
+    const j = jsonFrom(out);
+    if (!j || !j.decision) return { decision: "ERROR", reason: "unreadable reply" };
+    const d = String(j.decision).toUpperCase();
+    return { decision: (d === "INCLUDE" || d === "EXCLUDE" || d === "MAYBE") ? d : "MAYBE",
+             reason: String(j.reason || "").slice(0, 300) };
+  }
+
+  async function run() {
+    const criteria = $("crit").value.trim();
+    if (!apiKey) { alert("Paste your Groq key in step 1."); return; }
+    if (!records.length) { alert("Load a file in step 2."); return; }
+    if (!criteria) { alert("Write your criteria in step 3."); return; }
+    const lang = $("lang").value;
+    const doTr = $("tr").value === "yes";
+    const limRaw = $("limit").value.trim().toLowerCase();
+    const limit = (limRaw === "all" || !limRaw) ? records.length : Math.max(1, parseInt(limRaw, 10) || records.length);
+    const stop = Math.min(records.length, cursor + limit);
+
+    running = true; paused = false;
+    $("startBtn").classList.add("hidden");
+    $("pauseBtn").classList.remove("hidden");
+
+    while (cursor < stop && !paused) {
+      const rec = records[cursor];
+      try {
+        if (doTr && !rec.trTitle) await translate(rec, lang);
+        const [a, b] = await Promise.all([
+          screenOne(rec, REVIEWER_A, criteria, lang),
+          screenOne(rec, REVIEWER_B, criteria, lang)
+        ]);
+        rec.a = a; rec.b = b;
+        if (a.decision === "ERROR" || b.decision === "ERROR") rec.status = "error";
+        else if (a.decision === b.decision) { rec.status = "agreed"; rec.final = a.decision; }
+        else rec.status = "disagreed";
+      } catch (err) {
+        rec.status = "error";
+        rec.note = String(err.message || err);
+      }
+      cursor++;
+      renderStats();
+      renderQueue();
+      await sleep(150);
+    }
+
+    running = false;
+    $("pauseBtn").classList.add("hidden");
+    $("startBtn").classList.remove("hidden");
+    $("startBtn").textContent = cursor >= records.length ? "Screening complete" : "Continue screening";
+    if (cursor > 0) $("exportBtn").classList.remove("hidden");
+  }
+
+  $("startBtn").addEventListener("click", () => {
+    apiKey = $("key").value.trim() || apiKey;
+    if (apiKey) $("key").value = "";
+    if (!running) run();
+  });
+  $("pauseBtn").addEventListener("click", () => { paused = true; $("pauseBtn").textContent = "Pausing…"; setTimeout(() => { $("pauseBtn").textContent = "Pause"; }, 1200); });
+
+  /* ---------------- stats, kappa ---------------- */
+  function counts() {
+    let agreedInc = 0, agreedExc = 0, agreedMaybe = 0, dis = 0, err = 0, done = 0;
+    records.forEach(r => {
+      if (r.status === "pending") return;
+      done++;
+      if (r.status === "error") err++;
+      else if (r.status === "disagreed") dis++;
+      else if (r.final === "INCLUDE") agreedInc++;
+      else if (r.final === "EXCLUDE") agreedExc++;
+      else agreedMaybe++;
+    });
+    return { agreedInc, agreedExc, agreedMaybe, dis, err, done };
+  }
+
+  function cohensKappa() {
+    const cats = ["INCLUDE", "EXCLUDE", "MAYBE"];
+    const rows = records.filter(r => r.a && r.b && r.a.decision !== "ERROR" && r.b.decision !== "ERROR");
+    const n = rows.length;
+    if (n < 2) return null;
+    let obs = 0;
+    const ca = {}, cb = {};
+    cats.forEach(c => { ca[c] = 0; cb[c] = 0; });
+    rows.forEach(r => {
+      if (r.a.decision === r.b.decision) obs++;
+      ca[r.a.decision] = (ca[r.a.decision] || 0) + 1;
+      cb[r.b.decision] = (cb[r.b.decision] || 0) + 1;
+    });
+    const po = obs / n;
+    let pe = 0;
+    cats.forEach(c => { pe += (ca[c] / n) * (cb[c] / n); });
+    if (pe === 1) return { k: 1, po: po, n: n };
+    return { k: (po - pe) / (1 - pe), po: po, n: n };
+  }
+
+  function kappaLabel(k) {
+    if (k >= 0.81) return "almost perfect";
+    if (k >= 0.61) return "substantial";
+    if (k >= 0.41) return "moderate";
+    if (k >= 0.21) return "fair";
+    return "slight";
+  }
+
+  function renderStats() {
+    const c = counts();
+    const pct = records.length ? Math.round(c.done / records.length * 100) : 0;
+    $("bar").style.width = pct + "%";
+    $("stats").innerHTML = "";
+    const items = [
+      ["Records", records.length], ["Screened", c.done],
+      ["Auto-included", c.agreedInc], ["Auto-excluded", c.agreedExc],
+      ["Needs you", c.dis + c.agreedMaybe], ["Errors", c.err]
+    ];
+    items.forEach(it => {
+      const d = document.createElement("div");
+      const b = document.createElement("b");
+      b.textContent = it[1];
+      d.appendChild(b);
+      d.appendChild(document.createTextNode(it[0]));
+      $("stats").appendChild(d);
+    });
+    const kp = cohensKappa();
+    if (kp) {
+      $("kappa").classList.remove("hidden");
+      $("kappa").innerHTML = "";
+      const strong = document.createElement("b");
+      strong.textContent = "Reviewer agreement (Cohen's κ): " + kp.k.toFixed(2);
+      $("kappa").appendChild(strong);
+      $("kappa").appendChild(document.createTextNode(
+        " — " + kappaLabel(kp.k) + " · raw agreement " + Math.round(kp.po * 100) + "% on " + kp.n + " records. Report this in your methods section."));
+    }
+  }
+
+  /* ---------------- disagreement queue ---------------- */
+  function renderQueue() {
+    const q = records.filter(r => (r.status === "disagreed") ||
+      (r.status === "agreed" && r.final === "MAYBE"));
+    const box = $("queue");
+    if (!q.length) { $("cardQueue").classList.add("hidden"); return; }
+    $("cardQueue").classList.remove("hidden");
+    box.textContent = "";
+    q.forEach(rec => {
+      const div = document.createElement("div");
+      div.className = "rec";
+
+      const tag = document.createElement("span");
+      tag.className = "tagline " + (rec.status === "disagreed" ? "t-dis" : "t-err");
+      tag.textContent = rec.status === "disagreed" ? "Reviewers disagree" : "Both unsure";
+      div.appendChild(tag);
+
+      const h = document.createElement("h4");
+      h.textContent = "#" + rec.id + " · " + rec.title;
+      div.appendChild(h);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = [rec.authors, rec.journal, rec.year].filter(Boolean).join(" · ");
+      div.appendChild(meta);
+
+      const split = document.createElement("div");
+      split.className = "split";
+      const p1 = document.createElement("div"); p1.className = "pane";
+      const h1 = document.createElement("h5"); h1.textContent = "Original";
+      const a1 = document.createElement("div"); a1.className = "ab"; a1.textContent = rec.abstract || "(no abstract)";
+      p1.appendChild(h1); p1.appendChild(a1);
+      split.appendChild(p1);
+      if (rec.trAbstract || rec.trTitle) {
+        const p2 = document.createElement("div"); p2.className = "pane";
+        const h2 = document.createElement("h5"); h2.textContent = "Translation";
+        const t2 = document.createElement("div"); t2.className = "ab";
+        t2.textContent = (rec.trTitle ? rec.trTitle + "\n\n" : "") + (rec.trAbstract || "");
+        p2.appendChild(h2); p2.appendChild(t2);
+        split.appendChild(p2);
+      }
+      div.appendChild(split);
+
+      const vs = document.createElement("div");
+      vs.className = "verdicts";
+      [[REVIEWER_A, rec.a], [REVIEWER_B, rec.b]].forEach(pair => {
+        const v = document.createElement("div"); v.className = "v";
+        const b = document.createElement("b");
+        b.textContent = pair[0].name + ": " + (pair[1] ? pair[1].decision : "-");
+        b.className = pair[1] && pair[1].decision === "INCLUDE" ? "inc" : (pair[1] && pair[1].decision === "EXCLUDE" ? "exc" : "");
+        v.appendChild(b);
+        v.appendChild(document.createTextNode(pair[1] ? pair[1].reason : ""));
+        vs.appendChild(v);
+      });
+      div.appendChild(vs);
+
+      const bi = document.createElement("button");
+      bi.className = "btn btn-primary btn-small";
+      bi.textContent = "Include";
+      bi.addEventListener("click", () => { rec.final = "INCLUDE"; rec.status = "resolved"; renderStats(); renderQueue(); });
+      const be = document.createElement("button");
+      be.className = "btn btn-secondary btn-small";
+      be.style.marginLeft = "8px";
+      be.textContent = "Exclude";
+      be.addEventListener("click", () => { rec.final = "EXCLUDE"; rec.status = "resolved"; renderStats(); renderQueue(); });
+      div.appendChild(bi); div.appendChild(be);
+
+      box.appendChild(div);
+    });
+  }
+
+  /* ---------------- export ---------------- */
+  $("exportBtn").addEventListener("click", () => {
+    const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""').replace(/\r?\n/g, " ") + '"';
+    const head = ["id", "final_decision", "status", "reviewer_A", "reason_A", "reviewer_B", "reason_B",
+      "title", "translated_title", "authors", "year", "journal", "abstract", "translated_abstract"];
+    const lines = [head.join(",")];
+    records.forEach(r => {
+      lines.push([r.id, r.final || (r.status === "pending" ? "" : "UNRESOLVED"), r.status,
+        r.a ? r.a.decision : "", r.a ? r.a.reason : "",
+        r.b ? r.b.decision : "", r.b ? r.b.reason : "",
+        r.title, r.trTitle, r.authors, r.year, r.journal, r.abstract, r.trAbstract].map(esc).join(","));
+    });
+    const c = counts();
+    const kp = cohensKappa();
+    lines.push("");
+    lines.push(esc("PRISMA SUMMARY"));
+    lines.push([esc("Records identified"), esc(records.length)].join(","));
+    lines.push([esc("Records screened"), esc(c.done)].join(","));
+    lines.push([esc("Auto-included (both reviewers)"), esc(c.agreedInc)].join(","));
+    lines.push([esc("Auto-excluded (both reviewers)"), esc(c.agreedExc)].join(","));
+    lines.push([esc("Resolved by human"), esc(records.filter(r => r.status === "resolved").length)].join(","));
+    lines.push([esc("Errors"), esc(c.err)].join(","));
+    if (kp) lines.push([esc("Cohen's kappa"), esc(kp.k.toFixed(3))].join(","));
+    lines.push([esc("Method"), esc("AGIChainAI Consensus Review v0.1 — two independent AI reviewers (different model families), disagreements resolved by human")].join(","));
+
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "consensus-review-results.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  });
+
+  window.addEventListener("pagehide", () => { apiKey = null; });
+  renderStats();
+})();
+</script>
+</body>
+</html>
