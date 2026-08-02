@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGIChainAI Consensus v0.6.3 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
+  <meta name="description" content="AGIChainAI Consensus v0.6.4 — ask once, hear every model. Compare free and paid AI models side by side with an agreement analysis. Start free in 2 minutes — your keys never leave your browser.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.agichainai.com/tools/consensus.html">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#05070d">
-  <title>Consensus v0.6.3 — AGIChainAI</title>
+  <title>Consensus v0.6.4 — AGIChainAI</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .tool-wrap { max-width: 1080px; margin: 0 auto; padding: 0 0 70px; }
@@ -78,7 +78,7 @@
     <section class="page-hero" style="padding-bottom: 26px;">
       <div class="container">
         <span class="section-eyebrow">First Products · Shipped Work</span>
-        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.6.3 · Method v2</span></h1>
+        <h1>AGIChainAI <span class="gradient-text">Consensus</span><span class="status-tag">v0.6.4 · Method v2</span></h1>
         <p>Ask once. Hear every model. See where they agree — and why they
         differ. Claim-level agreement analysis with confidence labels — built on published research. Free models, no credit card.
         Your keys stay in your browser and talk directly to each provider.</p>
@@ -146,7 +146,7 @@
 
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>© 2026 AGIChainAI. Consensus v0.6.3 — early preview.</p>
+      <p>© 2026 AGIChainAI. Consensus v0.6.4 — early preview.</p>
       <p>No tracking · No cookies · No server ·
         <a href="../pages/privacy.html">Privacy</a> ·
         <a href="../index.html">Home</a>
@@ -447,6 +447,8 @@
     $("askBtn").disabled = false;
   });
 
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
   async function synthesize(question, answers) {
     const wrap = document.createElement("div");
     wrap.className = "synth";
@@ -501,7 +503,11 @@
       "  R1: the claim is a judgement, recommendation, framing or approach rather than a checkable fact (typical for questions " +
       "about how something SHOULD be done) -> [PERSPECTIVE]. Use this label whenever answers organise the same ground differently; " +
       "do not inflate framing agreement into factual confidence.\n" +
-      "  R2: c >= 1 -> the claim can NEVER be HIGH: if s > c -> [CONTESTED - majority supports, verify]; if s <= c -> [LOW - likely error]\n" +
+      "  R2: c >= 1 -> the claim can NEVER be HIGH. If a claim and its denial are both present, they are two sides of ONE " +
+      "dispute: label BOTH [CONTESTED - disputed, verify], whatever the vote count. Being in the minority is not evidence " +
+      "of being wrong. Use [LOW - likely error] ONLY when a claim is a concrete detail (a name, date, title, number) that " +
+      "other answers directly correct or that appears fabricated - never for a substantive disagreement about what the " +
+      "evidence shows.\n" +
       "  R3: supporters come from fewer than 2 families -> [UNVERIFIED - single source]\n" +
       "  R4: s >= 2 AND f >= 2 AND c = 0 -> [HIGH CONFIDENCE]\n" +
       "STEP 4 - Output in exactly this structure:\n" +
@@ -516,19 +522,29 @@
 
     async function runAnalyst(slot, label) {
       const r = await callSlot(slot, prompt, 4096);
+      const clean = cleanText(r.text);
+      if (!clean || clean.length < 40) throw new Error("empty analysis");
       body.classList.remove("thinking");
-      body.textContent = cleanText(r.text);
+      body.textContent = clean;
       h.textContent = "Consensus Analysis · Method v2";
       meta.textContent = label +
         " · answers anonymized and shuffled before analysis · AGIChainAI Consensus Method v2 — built on published research: self-consistency, mixture-of-agents, claim-level verification, judge-bias mitigation.";
     }
 
+    let firstErr = "";
     try {
       if (groqSrc) {
         const analyst = { name: "GPT-OSS 120B", kind: "openai-compat",
           baseUrl: groqSrc.baseUrl, model: ANALYST_MODEL, key: groqSrc.key };
-        await runAnalyst(analyst,
-          "Judge: GPT-OSS 120B — fixed independent analyst; it did not write any of the answers");
+        try {
+          await runAnalyst(analyst,
+            "Judge: GPT-OSS 120B — fixed independent analyst; it did not write any of the answers");
+        } catch (e1) {
+          firstErr = String(e1.message || e1);
+          await sleep(3000);            // one honest second attempt before demoting the judge
+          await runAnalyst(analyst,
+            "Judge: GPT-OSS 120B — fixed independent analyst (succeeded on retry); it did not write any of the answers");
+        }
       } else {
         // no Groq key available: fall back to a successful answerer, disclosed
         const pool = okSlots.length ? okSlots : slots;
@@ -542,12 +558,12 @@
         try {
           const backup = okSlots[Math.floor(Math.random() * okSlots.length)];
           await runAnalyst(backup,
-            "Judge: " + backup.name + " (backup — independent analyst unavailable; its own answer was included anonymously)");
+            "Judge: " + backup.name + " (backup — independent analyst unavailable: " + (firstErr || String(err.message || err)) + "; its own answer was included anonymously)");
           return;
         } catch (err2) { /* fall through */ }
       }
       body.classList.remove("thinking");
-      body.textContent = "Analysis failed: " + (err.message || err);
+      body.textContent = "Analysis failed: " + (firstErr ? firstErr + " | " : "") + (err.message || err) + " — free-tier limits are the usual cause; wait about a minute and press Ask again.";
     }
   }
 
