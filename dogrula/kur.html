@@ -50,6 +50,24 @@
     if (!h || !h.length || !ethers.isAddress(h[0])) throw Object.assign(new Error("HESAP_YOK"), { hesapYok: true });
     return ethers.getAddress(h[0]);
   }
+
+  // MetaMask mobil, site iznini ağ başına tutuyor; ağ değişince 'from' reddedilebiliyor
+  // ("must provide an Ethereum address"). Sırayla: küçük harf adres → izni yenile → adresi MetaMask doldursun.
+  async function guvenliGonder(tx) {
+    const adresHatasi = (e) => /must provide an Ethereum address|not been authorized|unauthorized/i.test((e && e.message) || "") || (e && e.code === 4100);
+    const gonder = (t) => window.ethereum.request({ method: "eth_sendTransaction", params: [t] });
+    try { return await gonder({ ...tx, from: tx.from.toLowerCase() }); }
+    catch (e1) {
+      if (!adresHatasi(e1)) throw e1;
+      try {
+        await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+        const h = await window.ethereum.request({ method: "eth_accounts" });
+        if (h && h.length) return await gonder({ ...tx, from: h[0].toLowerCase() });
+      } catch (e2) { if (e2 && e2.code === 4001) throw e2; if (!adresHatasi(e2)) throw e2; }
+      const { from, ...adressiz } = tx;
+      return await gonder(adressiz);
+    }
+  }
   $("baglan").onclick = async () => {
     try {
       if (!window.ethereum) return durum("Bu sayfayı MetaMask uygulamasının tarayıcısında açın (yukarıdaki turuncu düğme).", "hata");
@@ -76,7 +94,7 @@
     $("kur").disabled = true;
     try {
       durum("MetaMask'ta onay bekleniyor…");
-      const hash = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from: hesap, data: K.bytecode, gas: "0x" + (600000).toString(16) }] });
+      const hash = await guvenliGonder({ from: hesap, data: K.bytecode, gas: "0x" + (600000).toString(16) });
       durum("Gönderildi, bekleniyor… " + hash.slice(0, 12) + "…");
       let m = null; for (let i = 0; i < 180 && !m; i++) { m = await provider.getTransactionReceipt(hash).catch(() => null); if (!m) await new Promise((r) => setTimeout(r, 2000)); }
       if (!m || m.status !== 1 || !m.contractAddress) throw new Error("Kurulum başarısız. Hash: " + hash);

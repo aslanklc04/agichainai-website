@@ -224,12 +224,30 @@
   }
 
   // İşlemi en sade hâliyle gönder: sadece from/to/data/gas. Ücret ve nonce'u MetaMask kendisi belirler.
+
+  // MetaMask mobil, site iznini ağ başına tutuyor; ağ değişince 'from' reddedilebiliyor
+  // ("must provide an Ethereum address"). Sırayla: küçük harf adres → izni yenile → adresi MetaMask doldursun.
+  async function guvenliGonder(tx) {
+    const adresHatasi = (e) => /must provide an Ethereum address|not been authorized|unauthorized/i.test((e && e.message) || "") || (e && e.code === 4100);
+    const gonder = (t) => window.ethereum.request({ method: "eth_sendTransaction", params: [t] });
+    try { return await gonder({ ...tx, from: tx.from.toLowerCase() }); }
+    catch (e1) {
+      if (!adresHatasi(e1)) throw e1;
+      try {
+        await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+        const h = await window.ethereum.request({ method: "eth_accounts" });
+        if (h && h.length) return await gonder({ ...tx, from: h[0].toLowerCase() });
+      } catch (e2) { if (e2 && e2.code === 4001) throw e2; if (!adresHatasi(e2)) throw e2; }
+      const { from, ...adressiz } = tx;
+      return await gonder(adressiz);
+    }
+  }
   let sonHamHata = null;
   async function hamGonder(alanlar) {
     const tx = { from: hesap, data: alanlar.data, gas: "0x" + alanlar.gas.toString(16) };
     if (alanlar.to) tx.to = alanlar.to;
     try {
-      return await window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
+      return await guvenliGonder(tx);
     } catch (e) {
       sonHamHata = e;
       throw e;
