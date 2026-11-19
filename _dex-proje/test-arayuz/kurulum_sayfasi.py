@@ -1,7 +1,7 @@
 import os, json, sys, urllib.request, threading, http.server, functools
 from playwright.sync_api import sync_playwright
 FRONT = sys.argv[1]; RPC = "http://127.0.0.1:8545"
-D = {"reddet_sayac": None, "gonderim": 0, "ag_yok": True, "eklendi": False, "ekleme_istegi": None}
+D = {"reddet_sayac": None, "gonderim": 0, "ag_yok": True, "eklendi": False, "ekleme_istegi": None, "bakiye0": False, "ic_hata": False, "genel_hata": False}
 def rpc(method, params):
     if method == "eth_requestAccounts": method = "eth_accounts"
     if D["ag_yok"] and not D["eklendi"]:
@@ -10,6 +10,13 @@ def rpc(method, params):
     if method == "wallet_addEthereumChain":
         D["eklendi"] = True; D["ekleme_istegi"] = params[0]; return json.dumps({"result": None})
     if method == "wallet_switchEthereumChain": return json.dumps({"result": None})
+    if method == "eth_getBalance" and D["bakiye0"]: return json.dumps({"result": "0x0"})
+    if method == "eth_sendTransaction" and D["genel_hata"]:
+        D["genel_hata"] = False
+        return json.dumps({"error": {"code": -32603, "message": "Internal JSON-RPC error."}})
+    if method == "eth_sendTransaction" and D["ic_hata"]:
+        D["ic_hata"] = False
+        return json.dumps({"error": {"code": -32603, "message": "Internal JSON-RPC error.", "data": {"code": -32000, "message": "insufficient funds for gas * price + value: balance 0"}}})
     if method == "eth_sendTransaction":
         D["gonderim"] += 1
         if D["reddet_sayac"] == D["gonderim"]:
@@ -20,7 +27,7 @@ def rpc(method, params):
 H = functools.partial(http.server.SimpleHTTPRequestHandler, directory=FRONT); H.log_message = lambda *a: None
 threading.Thread(target=http.server.ThreadingHTTPServer(("127.0.0.1", 8097), H).serve_forever, daemon=True).start()
 SHIM = """window.ethereum = { request: async ({method, params}) => { const r = JSON.parse(await window.__rpc(method, params || []));
- if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; throw e; } return r.result; }, on: () => {} };"""
+ if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; e.data = r.error.data; throw e; } return r.result; }, on: () => {} };"""
 ok = []
 def k(ad, c, d=""): ok.append(c); print(("  ✔ " if c else "  ✘ ") + ad + ("" if c else f"  [{d}]"))
 with sync_playwright() as p:
@@ -37,10 +44,24 @@ with sync_playwright() as p:
     k("MetaMask'ta olmayan Base Sepolia ağı otomatik eklenir", D["eklendi"] and D["ekleme_istegi"]["chainId"] == "0x14a34" and "sepolia.base.org" in D["ekleme_istegi"]["rpcUrls"][0], str(D["ekleme_istegi"]))
     k("Sayfa başlığında ağ adı görünür", "Base Sepolia" in pg.inner_text("header"))
     k("Cüzdan bağlanır, bakiye ve tahmini ücret görünür", "Bakiye" in pg.inner_text("#cuzdan-bilgi") and "ücreti" in pg.inner_text("#maliyet"), pg.inner_text("#cuzdan-bilgi"))
+    D["bakiye0"] = True
+    pg.click("#basla"); pg.wait_for_timeout(800)
+    k("Bakiye 0 iken başlamadan anlaşılır uyarı verilir", "bakiyeniz 0" in st(), st())
+    D["bakiye0"] = False
+    D["ic_hata"] = True
+    pg.evaluate("document.getElementById('durum').textContent = ''")
+    pg.click("#basla"); s0 = bekle("yetersiz", "Hata", "gönderemedi")
+    k("MetaMask'ın iç içe 'yetersiz bakiye' hatası anlaşılır mesaja çevrilir", "yetersiz veya henüz gelmedi" in s0, s0)
+    D["genel_hata"] = True
+    pg.evaluate("document.getElementById('durum').textContent = ''")
+    pg.click("#basla"); s1 = bekle("gönderemedi", "Hata")
+    k("Ayrıntısız MetaMask hatası anlaşılır mesaja çevrilir, tekrar denenebilir", "gönderemedi" in s1 and pg.inner_text("#basla") == "Kuruluma devam et" and not D["genel_hata"], s1)
+    pg.reload(); pg.click("#baglan"); pg.wait_for_timeout(1500)
     pg.fill("#arz", "12abc"); pg.click("#basla"); pg.wait_for_timeout(300)
     k("Geçersiz arz reddedilir", "tam sayı" in st(), st())
     pg.fill("#arz", "1000000000")
-    D["reddet_sayac"] = 3  # Router adımında reddet
+    D["reddet_sayac"] = D["gonderim"] + 3  # Router adımında reddet
+    pg.evaluate("document.getElementById('durum').textContent = ''")
     pg.click("#basla"); s = bekle("reddettiniz", "Hata")
     k("3. adımda reddedilince anlaşılır mesaj ve devam düğmesi", "reddettiniz" in s and pg.inner_text("#basla") == "Kuruluma devam et", s)
     k("İlk iki kontrat kaydedildi", pg.inner_text("#adimlar").count("✅") == 2, pg.inner_text("#adimlar"))

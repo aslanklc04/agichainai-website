@@ -81,6 +81,8 @@
   const C = window.DEX_CONFIG || {};
   const HEDEF = Number(C.chainId || 11155111);
   const GAS_TAHMINI = 12_000_000n;
+  // Ölçülen gas kullanımı + %30 pay (WETH 604k, Factory 3.05M, Router 4.76M, Token 564k)
+  const GAS_LIMIT = { WETH9: 800_000n, Factory: 4_000_000n, Router: 6_200_000n, Token: 800_000n, setFeeTo: 100_000n };
   const KASIF = { 11155111: "https://sepolia.etherscan.io", 84532: "https://sepolia.basescan.org", 1: "https://etherscan.io" }[HEDEF] || null;
   const AG_ADI = { 11155111: "Sepolia", 84532: "Base Sepolia" }[HEDEF] || ("chainId " + HEDEF);
   // Desteklenen test ağları: MetaMask'ta yoksa otomatik eklenir
@@ -141,10 +143,29 @@
   }
 
   function hataMetni(e) {
-    if (e && (e.code === "ACTION_REJECTED" || e.code === 4001)) return "Onayı reddettiniz. Kaldığınız yerden devam etmek için tekrar basın.";
-    const m = (e && (e.shortMessage || e.message)) || String(e);
-    if (/insufficient funds|doesn't have enough funds/i.test(m)) return `${AG_ADI} ağında test ETH'niz yetersiz. Faucet'ten biraz daha alıp tekrar deneyin.`;
-    return "Hata: " + m.slice(0, 220);
+    if (e && (e.code === "ACTION_REJECTED" || e.code === 4001 || (e.info && e.info.error && e.info.error.code === 4001))) return "Onayı reddettiniz. Kaldığınız yerden devam etmek için tekrar basın.";
+    // Cüzdanlar asıl nedeni iç içe nesnelerde döndürür: hepsini topla
+    let ham = "";
+    try {
+      const parcalar = [e && e.shortMessage, e && e.reason, e && e.message,
+        e && e.info && e.info.error && e.info.error.message,
+        e && e.info && e.info.error && e.info.error.data && e.info.error.data.message,
+        e && e.error && e.error.message, e && e.data && e.data.message];
+      ham = parcalar.filter(Boolean).join(" | ") + " | " + JSON.stringify(e, (k, v) => (typeof v === "bigint" ? v.toString() : v));
+    } catch (_) { ham = String(e); }
+    if (/rejected|denied/i.test(ham) && /user/i.test(ham)) return "Onayı reddettiniz. Kaldığınız yerden devam etmek için tekrar basın.";
+    if (e && e.code === "INSUFFICIENT_FUNDS") ham += " insufficient funds";
+    if (e && (e.code === "NONCE_EXPIRED" || e.code === "REPLACEMENT_UNDERPRICED")) ham += " nonce";
+    if (e && (e.code === "NETWORK_ERROR" || e.code === "TIMEOUT")) ham += " network";
+    if (/insufficient funds|doesn't have enough funds|exceeds balance|gas \* price/i.test(ham)) return `${AG_ADI} ağında test ETH'niz yetersiz veya henüz gelmedi. MetaMask'ta ağı ${AG_ADI} yapıp bakiyeyi kontrol edin.`;
+    if (/nonce/i.test(ham)) return "Cüzdanda bekleyen başka bir işlem var. Birkaç saniye bekleyip tekrar deneyin.";
+    if (/timeout|network|failed to fetch|disconnected/i.test(ham)) return "Ağ bağlantısı koptu. Birkaç saniye bekleyip tekrar deneyin.";
+    if (/could not coalesce|Internal JSON-RPC error/i.test(ham))
+      return `MetaMask işlemi gönderemedi (ayrıntı vermedi). Ağın ${AG_ADI} olduğunu ve bakiyenizi kontrol edip "Kuruluma devam et"e tekrar basın. Sorun sürerse MetaMask'ı kapatıp açın.`;
+    // Bilinmeyen hata: asıl nedeni göster (destek için)
+    const ic = (e && e.info && e.info.error && (e.info.error.data && e.info.error.data.message || e.info.error.message)) || (e && e.error && e.error.message) || "";
+    const kisa = (e && (e.shortMessage || e.message)) || String(e);
+    return "Hata: " + (ic && !kisa.includes(ic) ? ic + " (" + kisa + ")" : kisa).slice(0, 260);
   }
 
   async function baglan() {
@@ -182,7 +203,7 @@
     adimlariCiz(adimAnahtari);
     durum(`MetaMask'ta onay bekleniyor: ${ADIMLAR.find((a) => a.anahtar === adimAnahtari).ad}…`);
     const f = new ethers.ContractFactory(K[fabrikaAdi].abi, K[fabrikaAdi].bytecode, signer);
-    const c = await f.deploy(...args);
+    const c = await f.deploy(...args, { gasLimit: GAS_LIMIT[fabrikaAdi] });
     durum("İşlem gönderildi, blokzincire yazılması bekleniyor… (" + c.deploymentTransaction().hash.slice(0, 12) + "…)");
     await c.waitForDeployment();
     kayit[adimAnahtari] = await c.getAddress();
@@ -198,6 +219,10 @@
       durum("Token zaten kuruldu; adı ve arzı artık değiştirilemez.", "hata");
       $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; return;
     }
+    try {
+      const b = await provider.getBalance(hesap);
+      if (b === 0n) { durum(`${AG_ADI} ağında bakiyeniz 0 görünüyor. Test ETH'si henüz gelmemiş olabilir; birkaç dakika bekleyip tekrar deneyin.`, "hata"); return; }
+    } catch (_) {}
     kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kaydet();
     $("basla").disabled = true;
     for (const id of ["ad", "sembol", "arz"]) $(id).disabled = true;
@@ -211,7 +236,7 @@
         adimlariCiz("komisyon");
         durum("MetaMask'ta onay bekleniyor: platform komisyonunu açma…");
         const fYaz = new ethers.Contract(kayit.factory, K.Factory.abi, signer);
-        const tx = await fYaz.setFeeTo(hesap);
+        const tx = await fYaz.setFeeTo(hesap, { gasLimit: GAS_LIMIT.setFeeTo });
         durum("İşlem gönderildi, bekleniyor…");
         await tx.wait();
         kayit.komisyon = true; kaydet(); adimlariCiz();

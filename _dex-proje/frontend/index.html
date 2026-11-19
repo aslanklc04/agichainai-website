@@ -385,6 +385,7 @@
       m = parcalar.filter(Boolean).join(" | ") + " | " + JSON.stringify(e, (k, v) => (typeof v === "bigint" ? v.toString() : v));
     } catch (_) { m = String(e); }
     if (/rejected|denied/i.test(m) && /user/i.test(m)) return "İşlemi cüzdanda reddettiniz.";
+    if (e && e.code === "INSUFFICIENT_FUNDS") return "Bakiyeniz (veya gas için ETH) yetersiz.";
     if (/INSUFFICIENT_OUTPUT_AMOUNT|INSUFFICIENT_A_AMOUNT|INSUFFICIENT_B_AMOUNT|EXCESSIVE_INPUT_AMOUNT/.test(m)) return "Fiyat çok değişti; kayma toleransını artırın veya tekrar deneyin.";
     if (/insufficient funds|doesn't have enough funds|exceeds balance|transfer amount exceeds/i.test(m)) return "Bakiyeniz (veya gas için ETH) yetersiz.";
     if (/EXPIRED/.test(m)) return "İşlemin süresi doldu, tekrar deneyin.";
