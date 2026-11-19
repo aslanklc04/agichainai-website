@@ -97,7 +97,7 @@
   </div>
   <div class="durum" id="durum"></div>
 
-  <p class="uyari"><a href="/" style="color:var(--vurgu)">← agichainai.com</a> · Test ağı: Sepolia<br><br>Bu arayüz, ağa kurduğunuz Uniswap V2 tabanlı kontratlarla çalışır. Herkes bu borsada token listeleyebilir.
+  <p class="uyari"><a href="/" style="color:var(--vurgu)">← agichainai.com</a> · Test ağı: <span id="ag-adi"></span><br><br>Bu arayüz, ağa kurduğunuz Uniswap V2 tabanlı kontratlarla çalışır. Herkes bu borsada token listeleyebilir.
   Bir token'ı almadan önce adresini resmî kaynaktan doğrulayın; işlemler geri alınamaz.</p>
 </main>
 
@@ -136,6 +136,24 @@
     "function approve(address, uint) returns (bool)",
   ];
 
+  // Desteklenen test ağları: MetaMask'ta yoksa otomatik eklenir
+  const AGLAR = {
+    84532: { chainId: "0x14a34", chainName: "Base Sepolia", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://sepolia.base.org"], blockExplorerUrls: ["https://sepolia.basescan.org"] },
+    11155111: { chainId: "0xaa36a7", chainName: "Sepolia", nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://ethereum-sepolia-rpc.publicnode.com"], blockExplorerUrls: ["https://sepolia.etherscan.io"] },
+  };
+  async function agaGec(hedef) {
+    const hex = "0x" + Number(hedef).toString(16);
+    try {
+      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+    } catch (e) {
+      const bilinmiyor = e && (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902) || /Unrecognized chain|not been added/i.test(e.message || ""));
+      if (!bilinmiyor || !AGLAR[hedef]) throw e;
+      await window.ethereum.request({ method: "wallet_addEthereumChain", params: [AGLAR[hedef]] });
+    }
+  }
+  const AG_ADI = { 11155111: "Sepolia", 84532: "Base Sepolia" }[C.chainId] || ("chainId " + C.chainId);
   let provider, signer, hesap, router, factory;
   // Varlık listesi: ETH + config'teki token'lar + kullanıcının ekledikleri
   const varliklar = [{ key: ETH, symbol: "ETH", address: C.weth, decimals: 18 }];
@@ -198,9 +216,9 @@
     const ag = await provider.getNetwork();
     if (Number(ag.chainId) !== C.chainId) {
       try {
-        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x" + C.chainId.toString(16) }] });
+        await agaGec(C.chainId);
         provider = new ethers.BrowserProvider(window.ethereum);
-      } catch (e) { durum(`Cüzdanınızı chainId ${C.chainId} ağına geçirin.`, "hata"); return; }
+      } catch (e) { durum(`Cüzdanınızı ${AG_ADI} ağına geçirin.`, "hata"); return; }
     }
     signer = await provider.getSigner();
     hesap = await signer.getAddress();
@@ -407,6 +425,7 @@
   });
 
   secenekleriDoldur();
+  if ($("ag-adi")) $("ag-adi").textContent = AG_ADI;
   if (!C || !C.router) durum("config.js bulunamadı. Önce deploy betiğini çalıştırın.", "hata");
 })();
 </script>

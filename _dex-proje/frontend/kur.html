@@ -31,7 +31,7 @@
 </style>
 </head>
 <body>
-<header>AGIChainAI DEX — Kurulum</header>
+<header>AGIChainAI DEX — Kurulum <span id="ag-etiket" style="font-size:12px;color:var(--soluk);font-weight:400"></span></header>
 <main>
   <section class="kart" id="bilgi-kart">
     <h2>Bu sayfa ne yapar?</h2>
@@ -81,7 +81,26 @@
   const C = window.DEX_CONFIG || {};
   const HEDEF = Number(C.chainId || 11155111);
   const GAS_TAHMINI = 12_000_000n;
-  const KASIF = { 11155111: "https://sepolia.etherscan.io", 1: "https://etherscan.io" }[HEDEF] || null;
+  const KASIF = { 11155111: "https://sepolia.etherscan.io", 84532: "https://sepolia.basescan.org", 1: "https://etherscan.io" }[HEDEF] || null;
+  const AG_ADI = { 11155111: "Sepolia", 84532: "Base Sepolia" }[HEDEF] || ("chainId " + HEDEF);
+  // Desteklenen test ağları: MetaMask'ta yoksa otomatik eklenir
+  const AGLAR = {
+    84532: { chainId: "0x14a34", chainName: "Base Sepolia", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://sepolia.base.org"], blockExplorerUrls: ["https://sepolia.basescan.org"] },
+    11155111: { chainId: "0xaa36a7", chainName: "Sepolia", nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://ethereum-sepolia-rpc.publicnode.com"], blockExplorerUrls: ["https://sepolia.etherscan.io"] },
+  };
+  async function agaGec(hedef) {
+    const hex = "0x" + Number(hedef).toString(16);
+    try {
+      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+    } catch (e) {
+      const bilinmiyor = e && (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902) || /Unrecognized chain|not been added/i.test(e.message || ""));
+      if (!bilinmiyor || !AGLAR[hedef]) throw e;
+      await window.ethereum.request({ method: "wallet_addEthereumChain", params: [AGLAR[hedef]] });
+    }
+  }
+
 
   const ADIMLAR = [
     { anahtar: "weth", ad: "WETH (sarılmış ETH)" },
@@ -124,7 +143,7 @@
   function hataMetni(e) {
     if (e && (e.code === "ACTION_REJECTED" || e.code === 4001)) return "Onayı reddettiniz. Kaldığınız yerden devam etmek için tekrar basın.";
     const m = (e && (e.shortMessage || e.message)) || String(e);
-    if (/insufficient funds|doesn't have enough funds/i.test(m)) return "Test ETH'niz yetersiz. Faucet'ten biraz daha alıp tekrar deneyin.";
+    if (/insufficient funds|doesn't have enough funds/i.test(m)) return `${AG_ADI} ağında test ETH'niz yetersiz. Faucet'ten biraz daha alıp tekrar deneyin.`;
     return "Hata: " + m.slice(0, 220);
   }
 
@@ -135,9 +154,9 @@
     let ag = await provider.getNetwork();
     if (Number(ag.chainId) !== HEDEF) {
       try {
-        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x" + HEDEF.toString(16) }] });
+        await agaGec(HEDEF);
         provider = new ethers.BrowserProvider(window.ethereum); ag = await provider.getNetwork();
-      } catch (e) { durum(`Cüzdanınızı ${HEDEF === 11155111 ? "Sepolia test ağına" : "chainId " + HEDEF + " ağına"} geçirin ve tekrar bağlanın.`, "hata"); return; }
+      } catch (e) { durum(`Cüzdanınızı ${AG_ADI} test ağına geçirin ve tekrar bağlanın.`, "hata"); return; }
     }
     signer = await provider.getSigner();
     hesap = await signer.getAddress();
@@ -239,6 +258,7 @@
   $("baglan").addEventListener("click", () => baglan().catch((e) => durum(hataMetni(e), "hata")));
   $("basla").addEventListener("click", basla);
 
+  $("ag-etiket").textContent = "· " + AG_ADI;
   if (C.router) { $("zaten-kurulu").style.display = "block"; $("zaten-kurulu").textContent = "Not: Borsa bu sitede zaten kurulu. Bu sayfayı sadece yeni bir kurulum yapmak istiyorsanız kullanın."; }
   if (!K) durum("kontratlar.js yüklenemedi.", "hata");
   adimlariCiz();
