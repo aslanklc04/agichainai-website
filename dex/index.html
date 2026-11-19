@@ -33,6 +33,11 @@
   .ekle { display:flex; gap:6px; margin-top:12px; }
   .ekle input { font-size:13px; border:1px solid var(--kenar); border-radius:8px; padding:8px; }
   .ekle button { font-size:13px; padding:8px 10px; }
+  .bant { background:#2a2410; color:#f5d77a; font-size:12px; text-align:center; padding:7px 10px; line-height:1.4; }
+  .rehber { margin-bottom:12px; font-size:13px; }
+  .rehber ol { margin:8px 0 0; padding-left:18px; color:var(--soluk); line-height:1.9; }
+  .rehber a { color:var(--vurgu); }
+  button.kucuk { font-size:13px; padding:5px 10px; border-radius:8px; background:transparent; border:1px solid var(--kenar); color:var(--yazi); }
 </style>
 </head>
 <body>
@@ -41,7 +46,20 @@
   <button id="baglan">Cüzdan bağla</button>
 </header>
 
+<div class="bant">🧪 <b>TEST AĞI</b> (Base Sepolia) · Buradaki AGI ve ETH gerçek para değildir · <i>Testnet — tokens have no real value</i></div>
 <main>
+  <section class="kart rehber" id="rehber">
+    <b>Borsayı ilk kez mi kullanıyorsunuz?</b>
+    <ol>
+      <li><span id="r-cuzdan">MetaMask uygulamasını kurun:</span> <a href="https://metamask.io/download/" target="_blank" rel="noopener">metamask.io</a>
+        <a id="mm-ac" class="gizli" href="#">Bu sayfayı MetaMask'ta aç →</a></li>
+      <li><button class="kucuk" id="ag-ekle">Base Sepolia ağını cüzdana ekle</button></li>
+      <li>Ücretsiz test ETH'si alın (ağ: Base Sepolia):
+        <a href="https://console.optimism.io/faucet" target="_blank" rel="noopener">Superchain faucet</a></li>
+      <li><button class="kucuk" id="agi-ekle">AGI token'ını cüzdana ekle</button></li>
+      <li>"Cüzdan bağla" deyin ve <b>Takas</b> sekmesinden ETH ↔ AGI alıp satın.</li>
+    </ol>
+  </section>
   <div class="sekmeler">
     <button data-sekme="takas" class="aktif">Takas</button>
     <button data-sekme="ekle">Likidite ekle</button>
@@ -233,6 +251,8 @@
     $("baglan").textContent = hesap.slice(0, 6) + "…" + hesap.slice(-4);
     for (const t of C.tokens || []) { try { await tokenEkle(t.address, t.symbol); } catch (e) {} }
     durum("Cüzdan bağlandı.", "ok");
+    $("rehber").classList.add("gizli");
+    try { localStorage.setItem("dex-rehber-gizle", "1"); } catch (e) {}
     yenile();
     if (window.ethereum.on) { window.ethereum.on("accountsChanged", () => location.reload()); window.ethereum.on("chainChanged", () => location.reload()); }
   }
@@ -435,6 +455,28 @@
   for (const t of (C && C.tokens) || []) {
     try { const a = ethers.getAddress(t.address); if (!varliklar.some((v) => v.key === a)) varliklar.push({ key: a, symbol: String(t.symbol).slice(0, 12), address: a, decimals: 18, onYukleme: true }); } catch (e) {}
   }
+  // Rehber: ağ ekle, token ekle, MetaMask'ta aç
+  const sayfaAdresi = location.host + location.pathname;
+  if (!window.ethereum) {
+    $("mm-ac").href = "https://metamask.app.link/dapp/" + sayfaAdresi;
+    $("mm-ac").classList.remove("gizli");
+    $("r-cuzdan").textContent = "Telefondaysanız sayfayı MetaMask uygulamasında açın; değilseniz kurun:";
+  }
+  $("ag-ekle").addEventListener("click", async () => {
+    if (!window.ethereum) { durum("Önce MetaMask gerekli. Telefondaysanız 'Bu sayfayı MetaMask'ta aç' linkine dokunun.", "hata"); return; }
+    try { await agaGec(C.chainId); durum(AG_ADI + " ağı hazır.", "ok"); } catch (e) { durum(hataMetni(e), "hata"); }
+  });
+  $("agi-ekle").addEventListener("click", async () => {
+    if (!window.ethereum) { durum("Önce MetaMask gerekli.", "hata"); return; }
+    const t = (C.tokens || [])[0]; if (!t) return;
+    try {
+      await agaGec(C.chainId);
+      await window.ethereum.request({ method: "wallet_watchAsset", params: { type: "ERC20", options: { address: t.address, symbol: t.symbol, decimals: 18 } } });
+      durum(t.symbol + " cüzdanınıza eklendi.", "ok");
+    } catch (e) { durum(hataMetni(e), "hata"); }
+  });
+  try { if (localStorage.getItem("dex-rehber-gizle") === "1") $("rehber").classList.add("gizli"); } catch (e) {}
+
   secenekleriDoldur();
   if ($("ag-adi")) $("ag-adi").textContent = AG_ADI;
   if (!C || !C.router) durum("config.js bulunamadı. Önce deploy betiğini çalıştırın.", "hata");
