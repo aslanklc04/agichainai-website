@@ -18,6 +18,7 @@ def rpc(method, params):
         D["ic_hata"] = False
         return json.dumps({"error": {"code": -32603, "message": "Internal JSON-RPC error.", "data": {"code": -32000, "message": "insufficient funds for gas * price + value: balance 0"}}})
     if method == "eth_sendTransaction":
+        D.setdefault("alanlar", set()).update(params[0].keys())
         D["gonderim"] += 1
         if D["reddet_sayac"] == D["gonderim"]:
             return json.dumps({"error": {"code": 4001, "message": "User rejected the request."}})
@@ -55,6 +56,8 @@ with sync_playwright() as p:
     D["genel_hata"] = True
     pg.evaluate("document.getElementById('durum').textContent = ''")
     pg.click("#basla"); s1 = bekle("gönderemedi", "Hata")
+    pg.evaluate("document.getElementById('teknik').open = true"); print("    teknik:", pg.inner_text("#teknik-metin").replace(chr(10)," ")[:300])
+    k("Hata olunca teknik ayrıntı kutusu ham hatayı gösterir", pg.is_visible("#teknik") and "-32603" in pg.inner_text("#teknik-metin"), pg.inner_text("#teknik-metin"))
     k("Ayrıntısız MetaMask hatası anlaşılır mesaja çevrilir, tekrar denenebilir", "gönderemedi" in s1 and pg.inner_text("#basla") == "Kuruluma devam et" and not D["genel_hata"], s1)
     pg.reload(); pg.click("#baglan"); pg.wait_for_timeout(1500)
     pg.fill("#arz", "12abc"); pg.click("#basla"); pg.wait_for_timeout(300)
@@ -73,6 +76,7 @@ with sync_playwright() as p:
     k("Kurulum tamamlanır ve kontrol edilir", "tamamlandı ve kontrol edildi" in s, s)
     k("Devam ederken sadece kalan 3 işlem gönderildi (tekrar kurulum yok)", D["gonderim"] - once == 3, str(D["gonderim"] - once))
     sonuc = json.loads(pg.inner_text("#sonuc"))
+    k("MetaMask'a sade işlem gider (ücret/nonce/chainId alanı yok)", D["alanlar"] <= {"from", "to", "data", "gas"}, str(D["alanlar"]))
     k("Token adı ve sembolü AGI", sonuc["token"]["symbol"] == "AGI" and sonuc["token"]["ad"] == "AGI")
     k("Komisyon adresi kurucuya ayarlandı", sonuc["komisyonAdresi"] == sonuc["kurucu"])
     k("5 adımın tamamı işaretli", pg.inner_text("#adimlar").count("✅") == 6, pg.inner_text("#adimlar"))

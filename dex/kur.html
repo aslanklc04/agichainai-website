@@ -61,6 +61,7 @@
     <div class="ince" id="maliyet"></div>
     <button id="basla" disabled>Kurulumu başlat</button>
     <div class="durum" id="durum"></div>
+    <details id="teknik" class="gizli" style="margin-top:8px"><summary class="ince">Teknik ayrıntı (sorun olursa bunu Claude'a gönderin)</summary><pre id="teknik-metin"></pre></details>
   </section>
 
   <section class="kart gizli" id="sonuc-kart">
@@ -198,15 +199,41 @@
     if (kayit.dogrulandi) sonucGoster();
   }
 
+  // İşlemi en sade hâliyle gönder: sadece from/to/data/gas. Ücret ve nonce'u MetaMask kendisi belirler.
+  let sonHamHata = null;
+  async function hamGonder(alanlar) {
+    const tx = { from: hesap, data: alanlar.data, gas: "0x" + alanlar.gas.toString(16) };
+    if (alanlar.to) tx.to = alanlar.to;
+    try {
+      return await window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
+    } catch (e) {
+      sonHamHata = e;
+      throw e;
+    }
+  }
+  async function makbuzBekle(hash) {
+    for (let i = 0; i < 180; i++) {          // en fazla ~6 dakika
+      const m = await provider.getTransactionReceipt(hash).catch(() => null);
+      if (m) {
+        if (m.status === 0) throw new Error("İşlem blokzincirde başarısız oldu (revert). Hash: " + hash);
+        return m;
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    throw new Error("İşlem çok uzun sürdü. Kaşifte kontrol edin: " + hash);
+  }
+
   async function kur(fabrikaAdi, args, adimAnahtari) {
     if (kayit[adimAnahtari]) return kayit[adimAnahtari];
     adimlariCiz(adimAnahtari);
     durum(`MetaMask'ta onay bekleniyor: ${ADIMLAR.find((a) => a.anahtar === adimAnahtari).ad}…`);
-    const f = new ethers.ContractFactory(K[fabrikaAdi].abi, K[fabrikaAdi].bytecode, signer);
-    const c = await f.deploy(...args, { gasLimit: GAS_LIMIT[fabrikaAdi] });
-    durum("İşlem gönderildi, blokzincire yazılması bekleniyor… (" + c.deploymentTransaction().hash.slice(0, 12) + "…)");
-    await c.waitForDeployment();
-    kayit[adimAnahtari] = await c.getAddress();
+    const f = new ethers.ContractFactory(K[fabrikaAdi].abi, K[fabrikaAdi].bytecode);
+    const { data } = await f.getDeployTransaction(...args);
+    const hash = await hamGonder({ data, gas: GAS_LIMIT[fabrikaAdi] });
+    durum("İşlem gönderildi, blokzincire yazılması bekleniyor… (" + hash.slice(0, 12) + "…)");
+    const m = await makbuzBekle(hash);
+    if (!m.contractAddress) throw new Error("Kontrat adresi alınamadı. Hash: " + hash);
+    kayit[adimAnahtari] = ethers.getAddress(m.contractAddress);
     kaydet(); adimlariCiz();
     return kayit[adimAnahtari];
   }
@@ -224,6 +251,7 @@
       if (b === 0n) { durum(`${AG_ADI} ağında bakiyeniz 0 görünüyor. Test ETH'si henüz gelmemiş olabilir; birkaç dakika bekleyip tekrar deneyin.`, "hata"); return; }
     } catch (_) {}
     kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kaydet();
+    $("teknik").classList.add("gizli");
     $("basla").disabled = true;
     for (const id of ["ad", "sembol", "arz"]) $(id).disabled = true;
     try {
@@ -235,10 +263,10 @@
       if (!kayit.komisyon) {
         adimlariCiz("komisyon");
         durum("MetaMask'ta onay bekleniyor: platform komisyonunu açma…");
-        const fYaz = new ethers.Contract(kayit.factory, K.Factory.abi, signer);
-        const tx = await fYaz.setFeeTo(hesap, { gasLimit: GAS_LIMIT.setFeeTo });
+        const veri = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeTo", [hesap]);
+        const hash = await hamGonder({ to: kayit.factory, data: veri, gas: GAS_LIMIT.setFeeTo });
         durum("İşlem gönderildi, bekleniyor…");
-        await tx.wait();
+        await makbuzBekle(hash);
         kayit.komisyon = true; kaydet(); adimlariCiz();
       }
 
@@ -258,6 +286,14 @@
       sonucGoster();
     } catch (e) {
       durum(hataMetni(e), "hata");
+      try {
+        const ham = sonHamHata || e;
+        const ozet = { adim: (ADIMLAR.find((a) => !kayit[a.anahtar] && a.anahtar !== "dogrula") || {}).anahtar, chainId: HEDEF,
+          kod: ham && ham.code, mesaj: ham && ham.message, veri: ham && ham.data, ic: e && e.info && e.info.error };
+        $("teknik-metin").textContent = JSON.stringify(ozet, (k, v) => (typeof v === "bigint" ? v.toString() : v), 2).slice(0, 2000);
+        $("teknik").classList.remove("gizli");
+      } catch (_) {}
+      sonHamHata = null;
       $("basla").disabled = false; $("basla").textContent = "Kuruluma devam et";
       adimlariCiz();
     }
