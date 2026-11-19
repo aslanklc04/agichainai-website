@@ -132,6 +132,7 @@
   tbl.appendChild(satir("Router", adresHucre(C.router)));
   tbl.appendChild(satir("WETH", adresHucre(C.weth)));
   for (const t of C.tokens || []) tbl.appendChild(satir(`Token (${String(t.symbol).slice(0, 12)})`, adresHucre(t.address)));
+  tbl.appendChild(satir("Liquidity lock", adresHucre(C.kilit)));
 
   if (!C.factory || !RPC) { $("okuma-durum").textContent = "The exchange has not been deployed yet; on-chain values will appear here after deployment."; return; }
   try {
@@ -145,6 +146,23 @@
     tbl.appendChild(satir("Pools created", ciftler.toString(), ["on-chain", "r-ok"]));
     const dogru = rf.toLowerCase() === C.factory.toLowerCase() && rw.toLowerCase() === C.weth.toLowerCase();
     tbl.appendChild(satir("Router wiring", dogru ? "Router points to this Factory and WETH" : "MISMATCH — do not use", dogru ? ["on-chain", "r-ok"] : ["check failed", "r-hata"]));
+    // Likidite kilidi: her token/WETH havuzunun ne kadarı zaman kilidinde, en erken ne zaman açılıyor.
+    if (C.kilit) {
+      const k = new ethers.Contract(C.kilit, ["function kilitliMiktar(address) view returns (uint256)", "function tokenKilitleri(address) view returns (uint256[])", "function kilit(uint256) view returns (tuple(address token,address sahip,uint256 miktar,uint64 acilis,bool cekildi))"], p);
+      const fp = new ethers.Contract(C.factory, ["function getPair(address,address) view returns (address)"], p);
+      for (const t of C.tokens || []) {
+        const cift = await fp.getPair(t.address, C.weth);
+        if (cift === ethers.ZeroAddress) continue;
+        const lp = new ethers.Contract(cift, ["function totalSupply() view returns (uint256)"], p);
+        const [kilitli, toplam, ids] = await Promise.all([k.kilitliMiktar(cift), lp.totalSupply(), k.tokenKilitleri(cift)]);
+        const simdi = Math.floor(Date.now() / 1000);
+        let enErken = null;
+        for (const id of ids) { const x = await k.kilit(id); if (!x.cekildi && Number(x.acilis) > simdi) enErken = enErken === null ? Number(x.acilis) : Math.min(enErken, Number(x.acilis)); }
+        const yuzde = toplam > 0n ? Number((kilitli * 10000n) / toplam) / 100 : 0;
+        const metin = kilitli === 0n ? "no locked liquidity" : `${yuzde}% of the pool locked until at least ${new Date(enErken * 1000).toISOString().slice(0, 10)}`;
+        tbl.appendChild(satir(`${String(t.symbol).slice(0, 12)}/ETH liquidity`, metin, kilitli === 0n ? ["not locked", "r-hata"] : ["on-chain", "r-ok"]));
+      }
+    }
     if (sifir) $("ucret-dagilim").textContent = "The platform fee is currently off, so the full 0.30% goes to liquidity providers.";
     $("okuma-durum").textContent = "Read live from " + AG + " just now.";
   } catch (e) {
