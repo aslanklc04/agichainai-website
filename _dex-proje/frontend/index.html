@@ -182,7 +182,13 @@
 
   async function tokenEkle(adr, sembolVarsayilan) {
     adr = ethers.getAddress(adr);
-    if (varliklar.some((v) => v.key === adr)) return;
+    const mevcut = varliklar.find((v) => v.key === adr);
+    if (mevcut && !mevcut.onYukleme) return;
+    if (mevcut && provider) {
+      try { const t0 = new ethers.Contract(adr, ERC20_ABI, provider); mevcut.decimals = Number(await t0.decimals()); mevcut.symbol = (await t0.symbol()).slice(0, 12); } catch (e) {}
+      mevcut.onYukleme = false; secenekleriDoldur(); return;
+    }
+    if (mevcut) return;
     const okuyucu = provider || new ethers.JsonRpcProvider();
     const t = new ethers.Contract(adr, ERC20_ABI, okuyucu);
     let symbol = sembolVarsayilan || "?", decimals = 18;
@@ -425,6 +431,10 @@
     catch (e) { durum(e.message || "Geçersiz adres.", "hata"); }
   });
 
+  // Config'teki token'ları cüzdan bağlanmadan da listede göster (ondalık bilgisi bağlanınca doğrulanır)
+  for (const t of (C && C.tokens) || []) {
+    try { const a = ethers.getAddress(t.address); if (!varliklar.some((v) => v.key === a)) varliklar.push({ key: a, symbol: String(t.symbol).slice(0, 12), address: a, decimals: 18, onYukleme: true }); } catch (e) {}
+  }
   secenekleriDoldur();
   if ($("ag-adi")) $("ag-adi").textContent = AG_ADI;
   if (!C || !C.router) durum("config.js bulunamadı. Önce deploy betiğini çalıştırın.", "hata");
