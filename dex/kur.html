@@ -45,6 +45,7 @@
     <h2>1. Cüzdan</h2>
     <div class="ince" id="cuzdan-bilgi">Bağlı değil.</div>
     <button id="baglan">Cüzdan bağla</button>
+    <a id="mm-ac" href="#" style="display:none;margin-top:10px;text-align:center;background:#f6851b;color:#fff;border-radius:10px;padding:13px;font-size:16px;text-decoration:none">🦊 Bu sayfayı MetaMask'ta aç</a>
   </section>
 
   <section class="kart">
@@ -359,6 +360,9 @@
       $("kopyala").textContent = "Metin seçildi, Kopyala'ya basın";
     }
   });
+
+  // Telefonda normal tarayıcıdaysa: sayfayı MetaMask uygulamasında açan bağlantıyı göster
+  if (!window.ethereum) { const a = document.getElementById("mm-ac"); a.href = "https://metamask.app.link/dapp/" + location.host + location.pathname + location.search; a.style.display = "block"; }
   $("baglan").addEventListener("click", () => baglan().catch((e) => durum(hataMetni(e), "hata")));
   $("basla").addEventListener("click", basla);
 

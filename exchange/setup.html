@@ -45,6 +45,7 @@
     <h2>1. Wallet</h2>
     <div class="ince" id="cuzdan-bilgi">Not connected.</div>
     <button id="baglan">Connect wallet</button>
+    <a id="mm-ac" href="#" style="display:none;margin-top:10px;text-align:center;background:#f6851b;color:#fff;border-radius:10px;padding:13px;font-size:16px;text-decoration:none">🦊 Open this page in MetaMask</a>
   </section>
 
   <section class="kart">
@@ -361,6 +362,9 @@
       $("kopyala").textContent = "Text selected — tap Copy";
     }
   });
+
+  // On a phone in a normal browser: show a link that opens this page in the MetaMask app
+  if (!window.ethereum) { const a = document.getElementById("mm-ac"); a.href = "https://metamask.app.link/dapp/" + location.host + location.pathname + location.search; a.style.display = "block"; }
   $("baglan").addEventListener("click", () => baglan().catch((e) => durum(hataMetni(e), "hata")));
   $("basla").addEventListener("click", basla);
 
