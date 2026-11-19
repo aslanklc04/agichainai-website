@@ -159,6 +159,7 @@
   }
 
   function hataMetni(e) {
+    if (e && e.hesapYok) return "MetaMask did not provide an account address. Allow this site to access your account in MetaMask, reload and try again.";
     if (e && (e.code === "ACTION_REJECTED" || e.code === 4001 || (e.info && e.info.error && e.info.error.code === 4001))) return "You rejected the confirmation. Tap again to continue where you left off.";
     // Cüzdanlar asıl nedeni iç içe nesnelerde döndürür: hepsini topla
     let ham = "";
@@ -195,7 +196,11 @@
         provider = new ethers.BrowserProvider(window.ethereum); ag = await provider.getNetwork();
       } catch (e) { durum(`Switch your wallet to ${AG_ADI} and connect again.`, "hata"); return; }
     }
-    signer = await provider.getSigner();
+    // MetaMask mobile may reset account permission after a network switch: ask again if empty
+    let izinli = await window.ethereum.request({ method: "eth_accounts" });
+    if (!izinli || !izinli.length) izinli = await window.ethereum.request({ method: "eth_requestAccounts" });
+    if (!izinli || !izinli.length || !ethers.isAddress(izinli[0])) throw Object.assign(new Error("HESAP_YOK"), { hesapYok: true });
+    signer = await provider.getSigner(ethers.getAddress(izinli[0]));
     hesap = await signer.getAddress();
     kayit = yukle();
     // Ağın resmî WETH'i config'te verilmişse (ör. Base ana ağı) yeni WETH kurulmaz

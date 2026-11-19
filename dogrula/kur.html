@@ -43,22 +43,34 @@
 
   // Telefonda normal tarayıcıdaysa: sayfayı MetaMask uygulamasında açan bağlantıyı göster
   if (!window.ethereum) { const a = document.getElementById("mm-ac"); a.href = "https://metamask.app.link/dapp/" + location.host + location.pathname + location.search; a.style.display = "block"; }
+  // MetaMask mobil, ağ değişince siteye verilen hesap iznini sıfırlayabiliyor: izni tekrar iste ve adresi doğrula
+  async function hesapIste() {
+    let h = await window.ethereum.request({ method: "eth_requestAccounts" });
+    if (!h || !h.length) h = await window.ethereum.request({ method: "eth_accounts" });
+    if (!h || !h.length || !ethers.isAddress(h[0])) throw Object.assign(new Error("HESAP_YOK"), { hesapYok: true });
+    return ethers.getAddress(h[0]);
+  }
   $("baglan").onclick = async () => {
     try {
-      if (!window.ethereum) return durum("Bu sayfayı MetaMask uygulamasının tarayıcısında açın.", "hata");
-      provider = new ethers.BrowserProvider(window.ethereum);
-      [hesap] = await provider.send("eth_requestAccounts", []);
+      if (!window.ethereum) return durum("Bu sayfayı MetaMask uygulamasının tarayıcısında açın (yukarıdaki turuncu düğme).", "hata");
+      hesap = await hesapIste();
       const hex = "0x" + Number(C.chainId).toString(16);
-      if (Number((await provider.getNetwork()).chainId) !== Number(C.chainId)) {
+      if ((await window.ethereum.request({ method: "eth_chainId" })).toLowerCase() !== hex) {
         try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] }); }
         catch (e) { if (AGLAR[C.chainId]) await window.ethereum.request({ method: "wallet_addEthereumChain", params: [AGLAR[C.chainId]] }); else throw e; }
-        provider = new ethers.BrowserProvider(window.ethereum);
+        hesap = await hesapIste();   // ağ değişiminden sonra izni yenile
       }
+      provider = new ethers.BrowserProvider(window.ethereum);
       const b = await provider.getBalance(hesap);
       durum(`Bağlandı: ${hesap.slice(0, 8)}… · Bakiye ${Number(ethers.formatEther(b)).toFixed(5)} ETH`, b > 0n ? "ok" : "hata");
       $("baglan").disabled = true; $("kur").disabled = b === 0n;
+      if (b === 0n) durum(`Bağlandı ama ${C.agAdi || "bu ağda"} bakiyeniz 0. Önce test ETH'si alın.`, "hata");
       if (C.defter) durum("Not: Bu sitede zaten bir defter kayıtlı (" + C.defter + "). Yeni defter sadece gerekiyorsa kurun.", "hata");
-    } catch (e) { durum("Hata: " + (e.shortMessage || e.message), "hata"); }
+    } catch (e) {
+      if (e.hesapYok) durum("MetaMask hesap adresini vermedi. MetaMask'ta sağ üstteki bağlantı simgesinden bu siteye 'Account 1' için izin verin, sayfayı yenileyip tekrar deneyin.", "hata");
+      else if (e.code === 4001) durum("Bağlantıyı reddettiniz. Tekrar deneyin.", "hata");
+      else durum("Hata: " + (e.shortMessage || e.message), "hata");
+    }
   };
   $("kur").onclick = async () => {
     $("kur").disabled = true;

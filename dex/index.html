@@ -244,7 +244,11 @@
         provider = new ethers.BrowserProvider(window.ethereum);
       } catch (e) { durum(`Cüzdanınızı ${AG_ADI} ağına geçirin.`, "hata"); return; }
     }
-    signer = await provider.getSigner();
+    // MetaMask mobil ağ değişince hesap iznini sıfırlayabiliyor: boşsa izni tekrar iste
+    let izinli = await window.ethereum.request({ method: "eth_accounts" });
+    if (!izinli || !izinli.length) izinli = await window.ethereum.request({ method: "eth_requestAccounts" });
+    if (!izinli || !izinli.length || !ethers.isAddress(izinli[0])) throw Object.assign(new Error("HESAP_YOK"), { hesapYok: true });
+    signer = await provider.getSigner(ethers.getAddress(izinli[0]));
     hesap = await signer.getAddress();
     router = new ethers.Contract(C.router, ROUTER_ABI, signer);
     factory = new ethers.Contract(C.factory, FACTORY_ABI, provider);
@@ -401,6 +405,7 @@
   }
 
   function hataMetni(e) {
+    if (e && e.hesapYok) return "MetaMask hesap adresini vermedi. MetaMask'ta bu siteye hesap izni verin, sayfayı yenileyip tekrar deneyin.";
     if (e && (e.code === "ACTION_REJECTED" || e.code === 4001 || (e.info && e.info.error && e.info.error.code === 4001))) return "İşlemi cüzdanda reddettiniz.";
     // Cüzdanlar asıl nedeni iç içe nesnelerde döndürür; hepsini tek metinde topla
     let m = "";
