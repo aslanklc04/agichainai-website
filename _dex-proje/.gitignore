@@ -1,0 +1,10 @@
+node_modules
+artifacts
+cache
+.env
+coverage
+coverage.json
+test-arayuz/kurulum.json
+test-arayuz/*.png
+kurulum-sonucu.json.local
+ekran_*.png

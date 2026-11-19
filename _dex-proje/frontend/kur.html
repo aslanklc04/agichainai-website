@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGIChainAI DEX — Kurulum</title>
+<style>
+  :root { --bg:#0f1115; --kart:#181b22; --kenar:#2a2f3a; --yazi:#e8eaf0; --soluk:#8b93a5; --vurgu:#4f8cff; --hata:#ff6b6b; --ok:#3ecf8e; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--yazi); }
+  header { padding:14px 18px; border-bottom:1px solid var(--kenar); font-weight:700; font-size:18px; }
+  main { max-width:460px; margin:20px auto; padding:0 14px; }
+  .kart { background:var(--kart); border:1px solid var(--kenar); border-radius:14px; padding:16px; margin-bottom:14px; }
+  h2 { font-size:15px; margin:0 0 10px; }
+  label { display:block; font-size:12px; color:var(--soluk); margin:10px 0 4px; }
+  input { width:100%; background:var(--bg); border:1px solid var(--kenar); border-radius:8px; color:var(--yazi); font-size:16px; padding:10px; }
+  button { width:100%; background:var(--vurgu); color:#fff; border:none; border-radius:10px; padding:13px; font-size:16px; margin-top:12px; cursor:pointer; }
+  button.ikincil { background:transparent; border:1px solid var(--kenar); color:var(--yazi); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .ince { font-size:13px; color:var(--soluk); line-height:1.5; }
+  ol { padding-left:0; list-style:none; margin:0; }
+  li { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--kenar); font-size:14px; }
+  li:last-child { border-bottom:none; }
+  .ikon { width:20px; text-align:center; flex-shrink:0; }
+  .adres { font-family:ui-monospace,monospace; font-size:12px; color:var(--soluk); word-break:break-all; }
+  .adres a { color:var(--vurgu); }
+  .durum { min-height:20px; font-size:13px; margin-top:10px; word-break:break-word; }
+  .durum.hata { color:var(--hata); } .durum.ok { color:var(--ok); }
+  pre { background:var(--bg); border:1px solid var(--kenar); border-radius:8px; padding:10px; font-size:11px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; }
+  .gizli { display:none; }
+</style>
+</head>
+<body>
+<header>AGIChainAI DEX — Kurulum</header>
+<main>
+  <section class="kart" id="bilgi-kart">
+    <h2>Bu sayfa ne yapar?</h2>
+    <p class="ince">Borsanın 4 kontratını <b>kendi cüzdanınızla</b> blokzincire kurar (WETH, Factory, Router ve sizin token'ınız) ve platform komisyonunu sizin adresinize açar.
+    Toplam 5 onay gerekir. Kurucu siz olursunuz; token'ların tamamı ve borsanın ücret yetkisi sizin adresinizde kalır.
+    Özel anahtarınız bu sayfaya hiçbir zaman girilmez.</p>
+    <p class="ince" id="zaten-kurulu" style="display:none;color:var(--ok)"></p>
+  </section>
+
+  <section class="kart">
+    <h2>1. Cüzdan</h2>
+    <div class="ince" id="cuzdan-bilgi">Bağlı değil.</div>
+    <button id="baglan">Cüzdan bağla</button>
+  </section>
+
+  <section class="kart">
+    <h2>2. Token</h2>
+    <label for="ad">Token adı</label><input id="ad" value="AGI" maxlength="40">
+    <label for="sembol">Sembol</label><input id="sembol" value="AGI" maxlength="11">
+    <label for="arz">Toplam arz (adet)</label><input id="arz" value="1000000000" inputmode="numeric">
+    <p class="ince">Sabit arz: kurulumdan sonra yeni token basılamaz, dondurulamaz, vergi konamaz.</p>
+  </section>
+
+  <section class="kart">
+    <h2>3. Kurulum</h2>
+    <ol id="adimlar"></ol>
+    <div class="ince" id="maliyet"></div>
+    <button id="basla" disabled>Kurulumu başlat</button>
+    <div class="durum" id="durum"></div>
+  </section>
+
+  <section class="kart gizli" id="sonuc-kart">
+    <h2>Kurulum tamam</h2>
+    <p class="ince">Bu adresleri sayfaya eklenmesi için Claude'a gönderin (aşağıdaki düğmeyle kopyalayabilirsiniz).</p>
+    <pre id="sonuc"></pre>
+    <button id="kopyala" class="ikincil">Adresleri kopyala</button>
+  </section>
+</main>
+
+<script src="ethers.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="kontratlar.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const K = window.DEX_KONTRATLAR;
+  const C = window.DEX_CONFIG || {};
+  const HEDEF = Number(C.chainId || 11155111);
+  const GAS_TAHMINI = 12_000_000n;
+  const KASIF = { 11155111: "https://sepolia.etherscan.io", 1: "https://etherscan.io" }[HEDEF] || null;
+
+  const ADIMLAR = [
+    { anahtar: "weth", ad: "WETH (sarılmış ETH)" },
+    { anahtar: "factory", ad: "Factory (havuz fabrikası)" },
+    { anahtar: "router", ad: "Router (takas yönlendirici)" },
+    { anahtar: "token", ad: "Token" },
+    { anahtar: "komisyon", ad: "Platform komisyonunu aç (%0,05 sizin adresinize)" },
+    { anahtar: "dogrula", ad: "Kontrol: kontratlar birbirine doğru bağlı mı?" },
+  ];
+
+  let provider, signer, hesap, kayit = {};
+
+  function durum(msj, tur) { $("durum").textContent = msj || ""; $("durum").className = "durum " + (tur || ""); }
+  const anahtar = () => `dex-kurulum-${HEDEF}-${hesap}`;
+  function kaydet() { try { localStorage.setItem(anahtar(), JSON.stringify(kayit)); } catch (e) {} }
+  function yukle() { try { return JSON.parse(localStorage.getItem(anahtar()) || "{}"); } catch (e) { return {}; } }
+
+  function adimlariCiz(aktif) {
+    const ol = $("adimlar"); ol.innerHTML = "";
+    for (const a of ADIMLAR) {
+      const li = document.createElement("li");
+      const ikon = document.createElement("span"); ikon.className = "ikon";
+      const govde = document.createElement("div");
+      const baslik = document.createElement("div"); baslik.textContent = a.anahtar === "token" && kayit.sembol ? `Token (${kayit.sembol})` : a.ad;
+      govde.appendChild(baslik);
+      const adr = ["weth", "factory", "router", "token"].includes(a.anahtar) ? kayit[a.anahtar] : null;
+      if (a.anahtar === "dogrula") ikon.textContent = kayit.dogrulandi ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else if (a.anahtar === "komisyon") ikon.textContent = kayit.komisyon ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else ikon.textContent = adr ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      if (adr && a.anahtar !== "dogrula") {
+        const d = document.createElement("div"); d.className = "adres";
+        if (KASIF) { const l = document.createElement("a"); l.href = `${KASIF}/address/${adr}`; l.target = "_blank"; l.rel = "noopener"; l.textContent = adr; d.appendChild(l); }
+        else d.textContent = adr;
+        govde.appendChild(d);
+      }
+      li.append(ikon, govde); ol.appendChild(li);
+    }
+  }
+
+  function hataMetni(e) {
+    if (e && (e.code === "ACTION_REJECTED" || e.code === 4001)) return "Onayı reddettiniz. Kaldığınız yerden devam etmek için tekrar basın.";
+    const m = (e && (e.shortMessage || e.message)) || String(e);
+    if (/insufficient funds|doesn't have enough funds/i.test(m)) return "Test ETH'niz yetersiz. Faucet'ten biraz daha alıp tekrar deneyin.";
+    return "Hata: " + m.slice(0, 220);
+  }
+
+  async function baglan() {
+    if (!window.ethereum) { durum("Cüzdan bulunamadı. Bu sayfayı MetaMask uygulamasının içindeki tarayıcıdan açın.", "hata"); return; }
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    let ag = await provider.getNetwork();
+    if (Number(ag.chainId) !== HEDEF) {
+      try {
+        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x" + HEDEF.toString(16) }] });
+        provider = new ethers.BrowserProvider(window.ethereum); ag = await provider.getNetwork();
+      } catch (e) { durum(`Cüzdanınızı ${HEDEF === 11155111 ? "Sepolia test ağına" : "chainId " + HEDEF + " ağına"} geçirin ve tekrar bağlanın.`, "hata"); return; }
+    }
+    signer = await provider.getSigner();
+    hesap = await signer.getAddress();
+    kayit = yukle();
+    if (kayit.ad) { $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; }
+    const bakiye = await provider.getBalance(hesap);
+    const fd = await provider.getFeeData();
+    const gp = fd.maxFeePerGas || fd.gasPrice || 0n;
+    const gerekli = GAS_TAHMINI * gp;
+    $("cuzdan-bilgi").textContent = `${hesap.slice(0, 8)}…${hesap.slice(-6)} · Bakiye: ${Number(ethers.formatEther(bakiye)).toFixed(4)} ETH`;
+    $("maliyet").textContent = `Tahmini işlem ücreti: ~${Number(ethers.formatEther(gerekli)).toFixed(4)} ETH (gas fiyatına göre değişir).`;
+    $("baglan").textContent = "Bağlandı"; $("baglan").disabled = true;
+    $("basla").disabled = false;
+    if (bakiye < gerekli) durum("Bakiye tahmini ücretin altında görünüyor. Yine de deneyebilirsiniz; yetmezse faucet'ten biraz daha alın.", "hata");
+    else durum("");
+    $("basla").textContent = kayit.weth && !kayit.dogrulandi ? "Kuruluma devam et" : kayit.dogrulandi ? "Kurulum zaten tamam" : "Kurulumu başlat";
+    adimlariCiz();
+    if (kayit.dogrulandi) sonucGoster();
+  }
+
+  async function kur(fabrikaAdi, args, adimAnahtari) {
+    if (kayit[adimAnahtari]) return kayit[adimAnahtari];
+    adimlariCiz(adimAnahtari);
+    durum(`MetaMask'ta onay bekleniyor: ${ADIMLAR.find((a) => a.anahtar === adimAnahtari).ad}…`);
+    const f = new ethers.ContractFactory(K[fabrikaAdi].abi, K[fabrikaAdi].bytecode, signer);
+    const c = await f.deploy(...args);
+    durum("İşlem gönderildi, blokzincire yazılması bekleniyor… (" + c.deploymentTransaction().hash.slice(0, 12) + "…)");
+    await c.waitForDeployment();
+    kayit[adimAnahtari] = await c.getAddress();
+    kaydet(); adimlariCiz();
+    return kayit[adimAnahtari];
+  }
+
+  async function basla() {
+    const ad = $("ad").value.trim(), sembol = $("sembol").value.trim(), arzM = $("arz").value.trim();
+    if (!ad || !sembol) { durum("Token adı ve sembolü boş olamaz.", "hata"); return; }
+    if (!/^[1-9][0-9]{0,14}$/.test(arzM)) { durum("Arz 1 ile 999 trilyon arasında bir tam sayı olmalı.", "hata"); return; }
+    if (kayit.token && (kayit.ad !== ad || kayit.sembol !== sembol || kayit.arz !== arzM)) {
+      durum("Token zaten kuruldu; adı ve arzı artık değiştirilemez.", "hata");
+      $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; return;
+    }
+    kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kaydet();
+    $("basla").disabled = true;
+    for (const id of ["ad", "sembol", "arz"]) $(id).disabled = true;
+    try {
+      const weth = await kur("WETH9", [], "weth");
+      const factory = await kur("Factory", [hesap], "factory");
+      await kur("Router", [factory, weth], "router");
+      await kur("Token", [ad, sembol, BigInt(arzM)], "token");
+
+      if (!kayit.komisyon) {
+        adimlariCiz("komisyon");
+        durum("MetaMask'ta onay bekleniyor: platform komisyonunu açma…");
+        const fYaz = new ethers.Contract(kayit.factory, K.Factory.abi, signer);
+        const tx = await fYaz.setFeeTo(hesap);
+        durum("İşlem gönderildi, bekleniyor…");
+        await tx.wait();
+        kayit.komisyon = true; kaydet(); adimlariCiz();
+      }
+
+      adimlariCiz("dogrula"); durum("Kontroller yapılıyor…");
+      const r = new ethers.Contract(kayit.router, K.Router.abi, provider);
+      const f = new ethers.Contract(kayit.factory, K.Factory.abi, provider);
+      const t = new ethers.Contract(kayit.token, K.Token.abi, provider);
+      const sorunlar = [];
+      if ((await r.factory()).toLowerCase() !== kayit.factory.toLowerCase()) sorunlar.push("Router → Factory bağlantısı");
+      if ((await r.WETH()).toLowerCase() !== kayit.weth.toLowerCase()) sorunlar.push("Router → WETH bağlantısı");
+      if ((await f.feeToSetter()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Factory yetkisi");
+      if ((await f.feeTo()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Komisyon adresi");
+      if ((await t.balanceOf(hesap)) !== BigInt(arzM) * 10n ** 18n) sorunlar.push("Token bakiyesi");
+      if (sorunlar.length) throw new Error("Kontrol başarısız: " + sorunlar.join(", "));
+      kayit.dogrulandi = true; kaydet(); adimlariCiz();
+      durum("Kurulum tamamlandı ve kontrol edildi.", "ok");
+      sonucGoster();
+    } catch (e) {
+      durum(hataMetni(e), "hata");
+      $("basla").disabled = false; $("basla").textContent = "Kuruluma devam et";
+      adimlariCiz();
+    }
+  }
+
+  function sonucGoster() {
+    const metin = JSON.stringify({ chainId: HEDEF, kurucu: hesap, komisyonAdresi: kayit.komisyon ? hesap : null, weth: kayit.weth, factory: kayit.factory, router: kayit.router,
+      token: { address: kayit.token, symbol: kayit.sembol, ad: kayit.ad, arz: kayit.arz } }, null, 2);
+    $("sonuc").textContent = metin;
+    $("sonuc-kart").classList.remove("gizli");
+    $("basla").disabled = true; $("basla").textContent = "Kurulum zaten tamam";
+  }
+
+  $("kopyala").addEventListener("click", async () => {
+    const metin = $("sonuc").textContent;
+    try { await navigator.clipboard.writeText(metin); $("kopyala").textContent = "Kopyalandı ✓"; }
+    catch (e) {
+      const r = document.createRange(); r.selectNodeContents($("sonuc"));
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      $("kopyala").textContent = "Metin seçildi, Kopyala'ya basın";
+    }
+  });
+  $("baglan").addEventListener("click", () => baglan().catch((e) => durum(hataMetni(e), "hata")));
+  $("basla").addEventListener("click", basla);
+
+  if (C.router) { $("zaten-kurulu").style.display = "block"; $("zaten-kurulu").textContent = "Not: Borsa bu sitede zaten kurulu. Bu sayfayı sadece yeni bir kurulum yapmak istiyorsanız kullanın."; }
+  if (!K) durum("kontratlar.js yüklenemedi.", "hata");
+  adimlariCiz();
+})();
+</script>
+</body>
+</html>
