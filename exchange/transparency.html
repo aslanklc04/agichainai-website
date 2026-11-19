@@ -146,21 +146,48 @@
     tbl.appendChild(satir("Pools created", ciftler.toString(), ["on-chain", "r-ok"]));
     const dogru = rf.toLowerCase() === C.factory.toLowerCase() && rw.toLowerCase() === C.weth.toLowerCase();
     tbl.appendChild(satir("Router wiring", dogru ? "Router points to this Factory and WETH" : "MISMATCH — do not use", dogru ? ["on-chain", "r-ok"] : ["check failed", "r-hata"]));
-    // Likidite kilidi: her token/WETH havuzunun ne kadarı zaman kilidinde, en erken ne zaman açılıyor.
+    // Kilitler (bağımsız inceleme F-05): her varlık için aktif kilit, süresi dolmuş ama çekilmemiş
+    // miktar ve sözleşmenin GERÇEK bakiyesi ayrı gösterilir. "Tamamı kilitli" iddiası yapılmaz.
     if (C.kilit) {
-      const k = new ethers.Contract(C.kilit, ["function kilitliMiktar(address) view returns (uint256)", "function tokenKilitleri(address) view returns (uint256[])", "function kilit(uint256) view returns (tuple(address token,address sahip,uint256 miktar,uint64 acilis,bool cekildi))"], p);
+      const k = new ethers.Contract(C.kilit, [
+        "function tokenKilitSayisi(address) view returns (uint256)",
+        "function tokenKilitleri(address,uint256,uint256) view returns (uint256[])",
+        "function kilit(uint256) view returns (tuple(address token,address sahip,uint256 miktar,uint64 acilis,bool cekildi))"], p);
       const fp = new ethers.Contract(C.factory, ["function getPair(address,address) view returns (address)"], p);
+      const erc = (a) => new ethers.Contract(a, ["function totalSupply() view returns (uint256)", "function balanceOf(address) view returns (uint256)"], p);
+      const simdi = (await p.getBlock("latest")).timestamp;
+      const varliklar = [];
       for (const t of C.tokens || []) {
         const cift = await fp.getPair(t.address, C.weth);
-        if (cift === ethers.ZeroAddress) continue;
-        const lp = new ethers.Contract(cift, ["function totalSupply() view returns (uint256)"], p);
-        const [kilitli, toplam, ids] = await Promise.all([k.kilitliMiktar(cift), lp.totalSupply(), k.tokenKilitleri(cift)]);
-        const simdi = Math.floor(Date.now() / 1000);
-        let enErken = null;
-        for (const id of ids) { const x = await k.kilit(id); if (!x.cekildi && Number(x.acilis) > simdi) enErken = enErken === null ? Number(x.acilis) : Math.min(enErken, Number(x.acilis)); }
-        const yuzde = toplam > 0n ? Number((kilitli * 10000n) / toplam) / 100 : 0;
-        const metin = kilitli === 0n ? "no locked liquidity" : `${yuzde}% of the pool locked until at least ${new Date(enErken * 1000).toISOString().slice(0, 10)}`;
-        tbl.appendChild(satir(`${String(t.symbol).slice(0, 12)}/ETH liquidity`, metin, kilitli === 0n ? ["not locked", "r-hata"] : ["on-chain", "r-ok"]));
+        if (cift !== ethers.ZeroAddress) varliklar.push({ ad: `${String(t.symbol).slice(0, 12)}/ETH pool shares (LP)`, adr: cift });
+        varliklar.push({ ad: `${String(t.symbol).slice(0, 12)} token`, adr: t.address });
+      }
+      const tarih = (s) => new Date(Number(s) * 1000).toISOString().slice(0, 10);
+      const kisa = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+      for (const v of varliklar) {
+        const n = Number(await k.tokenKilitSayisi(v.adr));
+        let aktif = 0n, dolmus = 0n; const aktifler = [];
+        for (let bas = 0; bas < Math.min(n, 1000); bas += 200) {
+          for (const id of await k.tokenKilitleri(v.adr, bas, 200)) {
+            const x = await k.kilit(id);
+            if (x.cekildi) continue;
+            if (Number(x.acilis) > simdi) { aktif += x.miktar; aktifler.push({ id, miktar: x.miktar, acilis: x.acilis, sahip: x.sahip }); } else dolmus += x.miktar;
+          }
+        }
+        const [arz, bakiye] = await Promise.all([erc(v.adr).totalSupply(), erc(v.adr).balanceOf(C.kilit)]);
+        const yuzde = (m) => arz > 0n ? (Number((m * 10000n) / arz) / 100) + "%" : "0%";
+        if (n === 0) { tbl.appendChild(satir(v.ad, "no locks", ["not locked", "r-hata"])); continue; }
+        tbl.appendChild(satir(v.ad + " — locked now", `${yuzde(aktif)} of total supply (${ethers.formatEther(aktif)})`, aktif > 0n ? ["on-chain", "r-ok"] : ["not locked", "r-hata"]));
+        aktifler.sort((a, b) => (b.miktar > a.miktar ? 1 : -1));
+        for (const x of aktifler.slice(0, 5))
+          tbl.appendChild(satir(`  lock #${x.id}`, `${yuzde(x.miktar)} until ${tarih(x.acilis)} · beneficiary ${kisa(x.sahip)}`));
+        if (dolmus > 0n) tbl.appendChild(satir(v.ad + " — unlocked, not withdrawn", `${yuzde(dolmus)} (can be withdrawn at any time)`, ["on-chain", "r-hata"]));
+        tbl.appendChild(satir(v.ad + " — held by lock contract", ethers.formatEther(bakiye), ["on-chain", "r-ok"]));
+      }
+      // Kurucunun elindeki token payı: kilit havuzu korur ama kurucu satışını tek başına engellemez
+      if (C.isletmeci) for (const t of C.tokens || []) {
+        const [arz, b] = await Promise.all([erc(t.address).totalSupply(), erc(t.address).balanceOf(C.isletmeci)]);
+        tbl.appendChild(satir(`${String(t.symbol).slice(0, 12)} held by the operator wallet (unlocked)`, arz > 0n ? (Number((b * 10000n) / arz) / 100) + "% of supply" : "—", ["on-chain", "r-ok"]));
       }
     }
     if (sifir) $("ucret-dagilim").textContent = "The platform fee is currently off, so the full 0.30% goes to liquidity providers.";

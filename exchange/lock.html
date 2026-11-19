@@ -49,11 +49,14 @@
     <label for="havuz" id="t-havuz">Havuz</label>
     <select id="havuz"></select>
     <div class="ince" id="lp-bakiye" style="margin-top:6px"></div>
+    <label for="miktar" id="t-miktar">Miktar</label>
+    <input id="miktar" inputmode="decimal" placeholder="">
     <label for="sure" id="t-sure">Kilit süresi</label>
     <select id="sure">
       <option value="180">6</option><option value="365" selected>12</option><option value="730">24</option><option value="1095">36</option>
     </select>
     <p class="ince" id="t-uyari"></p>
+    <p class="ince" id="t-dogrudan"></p>
     <button id="kilitle" disabled>Kilitle</button>
   </section>
 
@@ -86,12 +89,15 @@
     baglan: "Connect wallet", bagli: "Connected", kurBaslik: "1. Lock contract",
     kurAciklama: "No lock contract is configured for this exchange yet. Deploy it once from your wallet; then send the address so it can be added to the site.",
     kur: "Deploy lock contract", kilitBaslik: "2. Lock the pool", havuz: "Pool", sure: "Lock duration (months)",
-    uyari: "Warning: this cannot be undone. Your LP tokens will be unavailable until the date below.",
-    kilitle: "Lock", liste: "Locks for this pool", yok: "No locks yet.", lp: "Your LP balance: ", acilis: "unlocks ",
+    uyari: "Warning: this cannot be undone. The locked tokens will be unavailable until the unlock date.",
+    dogrudan: "Never send tokens directly to the lock contract address — they would be stuck forever. Only use the Lock button.",
+    miktar: "Amount (empty = all)", tokenEtiket: " (token)", sahip: "beneficiary ",
+    fazla: "The amount is more than your balance.",
+    kilitle: "Lock", liste: "Locks for this asset", yok: "No locks yet.", lp: "Your balance: ", acilis: "unlocks ",
     cekildi: "withdrawn", kilitli: "locked", cek: "Withdraw", noWallet: "No wallet found. Open this page in the MetaMask app's browser.",
     agGec: "Switch your wallet to the right network and try again.", onay: "Waiting for approval in MetaMask…",
     bekle: "Sent; waiting for the blockchain…", kuruldu: "Lock contract deployed. Send this address so it can be added to the site: ",
-    kilitlendi: "Locked. It is now verifiable on-chain.", lpYok: "You have no LP tokens in this pool.", reddedildi: "You rejected the transaction in MetaMask.",
+    kilitlendi: "Locked. It is now verifiable on-chain.", lpYok: "You have no balance of this asset.", reddedildi: "You rejected the transaction in MetaMask.",
     yetki: "Step 1/2: allow the lock contract to take the LP tokens…", kilitAdim: "Step 2/2: locking…", contract: "Lock contract: ",
   } : {
     title: "AGIChainAI — Likidite Kilidi", ne: "Bu sayfa ne yapar?",
@@ -99,19 +105,22 @@
     baglan: "Cüzdan bağla", bagli: "Bağlandı", kurBaslik: "1. Kilit sözleşmesi",
     kurAciklama: "Bu borsa için henüz bir kilit sözleşmesi tanımlı değil. Cüzdanınızla bir kez kurun; sonra çıkan adresi siteye eklenmesi için gönderin.",
     kur: "Kilit sözleşmesini kur", kilitBaslik: "2. Havuzu kilitle", havuz: "Havuz", sure: "Kilit süresi (ay)",
-    uyari: "Uyarı: bu işlem geri alınamaz. LP token'larınız aşağıdaki tarihe kadar kullanılamaz.",
-    kilitle: "Kilitle", liste: "Bu havuzun kilitleri", yok: "Henüz kilit yok.", lp: "LP bakiyeniz: ", acilis: "açılış ",
+    uyari: "Uyarı: bu işlem geri alınamaz. Kilitlenen token'lar açılış tarihine kadar kullanılamaz.",
+    dogrudan: "Kilit sözleşmesinin adresine asla doğrudan token göndermeyin — sonsuza dek içeride kalır. Yalnızca Kilitle düğmesini kullanın.",
+    miktar: "Miktar (boş = tamamı)", tokenEtiket: " (token)", sahip: "hak sahibi ",
+    fazla: "Miktar bakiyenizden fazla.",
+    kilitle: "Kilitle", liste: "Bu varlığın kilitleri", yok: "Henüz kilit yok.", lp: "Bakiyeniz: ", acilis: "açılış ",
     cekildi: "çekildi", kilitli: "kilitli", cek: "Çek", noWallet: "Cüzdan bulunamadı. Bu sayfayı MetaMask uygulamasının içindeki tarayıcıdan açın.",
     agGec: "Cüzdanınızı doğru ağa geçirip tekrar deneyin.", onay: "MetaMask'ta onay bekleniyor…",
     bekle: "Gönderildi; blokzincire yazılması bekleniyor…", kuruldu: "Kilit sözleşmesi kuruldu. Siteye eklenmesi için bu adresi gönderin: ",
-    kilitlendi: "Kilitlendi. Artık blokzincirde doğrulanabilir.", lpYok: "Bu havuzda LP token'ınız yok.", reddedildi: "İşlemi MetaMask'ta reddettiniz.",
+    kilitlendi: "Kilitlendi. Artık blokzincirde doğrulanabilir.", lpYok: "Bu varlıkta bakiyeniz yok.", reddedildi: "İşlemi MetaMask'ta reddettiniz.",
     yetki: "Adım 1/2: kilit sözleşmesine LP token'ları alma izni veriliyor…", kilitAdim: "Adım 2/2: kilitleniyor…", contract: "Kilit sözleşmesi: ",
   };
   document.documentElement.lang = EN ? "en" : "tr";
   document.title = M.title; $("baslik").textContent = M.title; $("t-ne").textContent = M.ne; $("t-aciklama").textContent = M.aciklama;
   $("baglan").textContent = M.baglan; $("t-kur-baslik").textContent = M.kurBaslik; $("t-kur-aciklama").textContent = M.kurAciklama;
   $("kur").textContent = M.kur; $("t-kilit-baslik").textContent = M.kilitBaslik; $("t-havuz").textContent = M.havuz;
-  $("t-sure").textContent = M.sure; $("t-uyari").textContent = M.uyari; $("kilitle").textContent = M.kilitle; $("t-liste").textContent = M.liste;
+  $("t-sure").textContent = M.sure; $("t-uyari").textContent = M.uyari; $("t-dogrudan").textContent = M.dogrudan; $("t-miktar").textContent = M.miktar; $("kilitle").textContent = M.kilitle; $("t-liste").textContent = M.liste;
 
   const FAB_ABI = ["function getPair(address,address) view returns (address)"];
   const ERC20_ABI = ["function balanceOf(address) view returns (uint256)", "function approve(address,uint256) returns (bool)", "function allowance(address,address) view returns (uint256)", "function symbol() view returns (string)"];
@@ -186,6 +195,13 @@
         if (cift === ethers.ZeroAddress) continue;
         const o = document.createElement("option"); o.value = cift; o.textContent = tk.symbol + " / ETH"; $("havuz").appendChild(o);
       }
+      // Projenin kendi token'ı da (kilit sözleşmesinin EK_TOKEN'ı) kilitlenebilir
+      const kc0 = new ethers.Contract(kilitAdr, K.Kilit.abi, provider);
+      const ek = await kc0.EK_TOKEN().catch(() => ethers.ZeroAddress);
+      if (ek !== ethers.ZeroAddress) {
+        const sem = (C.tokens || []).find((t) => t.address.toLowerCase() === ek.toLowerCase());
+        const o = document.createElement("option"); o.value = ek; o.textContent = (sem ? sem.symbol : "Token") + M.tokenEtiket; $("havuz").appendChild(o);
+      }
     }
     await havuzDegisti();
   }
@@ -194,10 +210,10 @@
     const cift = $("havuz").value; if (!cift) return;
     const lp = new ethers.Contract(cift, ERC20_ABI, provider);
     const bakiye = await lp.balanceOf(hesap);
-    $("lp-bakiye").textContent = M.lp + ethers.formatEther(bakiye) + " LP";
+    $("lp-bakiye").textContent = M.lp + ethers.formatEther(bakiye);
     $("kilitle").disabled = bakiye === 0n;
     const kc = new ethers.Contract(kilitAdr, K.Kilit.abi, provider);
-    const ids = await kc.tokenKilitleri(cift);
+    const ids = await kc.tokenKilitleri(cift, 0, 200);
     if (!ids.length) { $("liste").textContent = M.yok; return; }
     // Zincirin saati esas alınır (kilit sözleşmesi de onu kullanır)
     const simdi = (await provider.getBlock("latest")).timestamp;
@@ -208,7 +224,7 @@
       const dur = k.cekildi ? M.cekildi : M.kilitli;
       const benim = k.sahip.toLowerCase() === hesap.toLowerCase();
       const cekilebilir = benim && !k.cekildi && Number(k.acilis) <= simdi;
-      satirlar.push(`<div class="satir"><span>#${id} · ${ethers.formatEther(k.miktar)} LP · ${dur}</span><span>${M.acilis}${tarih}${cekilebilir ? ` <button class="ikincil" data-cek="${id}" style="width:auto;padding:4px 10px;margin:0">${M.cek}</button>` : ""}</span></div>`);
+      satirlar.push(`<div class="satir"><span>#${id} · ${ethers.formatEther(k.miktar)} · ${dur} · ${M.sahip}${k.sahip.slice(0, 6)}…${k.sahip.slice(-4)}</span><span>${M.acilis}${tarih}${cekilebilir ? ` <button class="ikincil" data-cek="${id}" style="width:auto;padding:4px 10px;margin:0">${M.cek}</button>` : ""}</span></div>`);
     }
     $("liste").innerHTML = satirlar.join("");
     $("liste").querySelectorAll("[data-cek]").forEach((b) => b.addEventListener("click", () => cek(BigInt(b.dataset.cek))));
@@ -217,7 +233,8 @@
   async function kur() {
     try {
       const f = new ethers.ContractFactory(K.Kilit.abi, K.Kilit.bytecode);
-      const { data } = await f.getDeployTransaction();
+      const ek = (C.tokens && C.tokens[0] && C.tokens[0].address) || ethers.ZeroAddress;
+      const { data } = await f.getDeployTransaction(C.factory, ek);
       const m = await gonderVeBekle(null, data, GAS.kur);
       kilitAdr = ethers.getAddress(m.contractAddress); localStorage.setItem(SAKLA, kilitAdr);
       durum(M.kuruldu + kilitAdr, "ok");
@@ -229,8 +246,11 @@
     try {
       const cift = $("havuz").value;
       const lp = new ethers.Contract(cift, ERC20_ABI, provider);
-      const miktar = await lp.balanceOf(hesap);
-      if (miktar === 0n) { durum(M.lpYok, "hata"); return; }
+      const bakiye = await lp.balanceOf(hesap);
+      const yazilan = $("miktar").value.trim().replace(",", ".");
+      const miktar = yazilan ? ethers.parseEther(yazilan) : bakiye;
+      if (miktar === 0n || bakiye === 0n) { durum(M.lpYok, "hata"); return; }
+      if (miktar > bakiye) { durum(M.fazla, "hata"); return; }
       const iz = new ethers.Interface(ERC20_ABI);
       if ((await lp.allowance(hesap, kilitAdr)) < miktar) {
         durum(M.yetki); await gonderVeBekle(cift, iz.encodeFunctionData("approve", [kilitAdr, miktar]), GAS.approve);
