@@ -36,7 +36,7 @@
   <section class="kart" id="bilgi-kart">
     <h2>Bu sayfa ne yapar?</h2>
     <p class="ince">Borsanın 4 kontratını <b>kendi cüzdanınızla</b> blokzincire kurar (WETH, Factory, Router ve sizin token'ınız) ve platform komisyonunu sizin adresinize açar.
-    Toplam 5 onay gerekir. Kurucu siz olursunuz; token'ların tamamı ve borsanın ücret yetkisi sizin adresinizde kalır.
+    Her adım MetaMask'ta bir onay ister. Kurulumu kim yaparsa yapsın; komisyon, yönetim yetkisi ve token'lar aşağıda yazan sahip adresine geçer.
     Özel anahtarınız bu sayfaya hiçbir zaman girilmez.</p>
     <p class="ince" id="zaten-kurulu" style="display:none;color:var(--ok)"></p>
   </section>
@@ -48,15 +48,23 @@
   </section>
 
   <section class="kart">
-    <h2>2. Token</h2>
-    <label for="ad">Token adı</label><input id="ad" value="AGI" maxlength="40">
-    <label for="sembol">Sembol</label><input id="sembol" value="AGI" maxlength="11">
-    <label for="arz">Toplam arz (adet)</label><input id="arz" value="1000000000" inputmode="numeric">
-    <p class="ince">Sabit arz: kurulumdan sonra yeni token basılamaz, dondurulamaz, vergi konamaz.</p>
+    <h2>2. Komisyon ve yönetim adresi</h2>
+    <label for="sahip">Komisyonun gideceği ve borsayı yönetecek adres</label><input id="sahip" placeholder="0x..." autocomplete="off" spellcheck="false" style="font-size:13px">
+    <p class="ince" id="sahip-not">Kurulumu başka biri yapsa bile komisyon ve yönetim yetkisi bu adrese devredilir; kurulumu yapan cüzdanda hiçbir yetki kalmaz.</p>
   </section>
 
   <section class="kart">
-    <h2>3. Kurulum</h2>
+    <h2>3. Token (isteğe bağlı)</h2>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--yazi)"><input type="checkbox" id="token-kur" checked style="width:auto"> Token'ı da kur</label>
+    <label for="ad">Token adı</label><input id="ad" value="AGI" maxlength="40">
+    <label for="sembol">Sembol</label><input id="sembol" value="AGI" maxlength="11">
+    <label for="arz">Toplam arz (adet)</label><input id="arz" value="1000000000" inputmode="numeric">
+    <p class="ince">Sabit arz: kurulumdan sonra yeni token basılamaz, dondurulamaz, vergi konamaz. Token'ların tamamı yukarıdaki adrese gönderilir.
+    Token kurmazsanız borsa yine çalışır; kullanıcılar kendi getirdikleri coinlerle havuz kurar.</p>
+  </section>
+
+  <section class="kart">
+    <h2>4. Kurulum</h2>
     <ol id="adimlar"></ol>
     <div class="ince" id="maliyet"></div>
     <button id="basla" disabled>Kurulumu başlat</button>
@@ -73,7 +81,7 @@
 </main>
 
 <script src="ethers.umd.min.js"></script>
-<script src="config.js"></script>
+<script>/* config her açılışta güncel yüklensin (önbellek atlanır) */ document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');</script>
 <script src="kontratlar.js"></script>
 <script>
 (() => {
@@ -83,7 +91,7 @@
   const HEDEF = Number(C.chainId || 11155111);
   const GAS_TAHMINI = 12_000_000n;
   // Ölçülen gas kullanımı + %30 pay (WETH 604k, Factory 3.05M, Router 4.76M, Token 564k)
-  const GAS_LIMIT = { WETH9: 800_000n, Factory: 4_000_000n, Router: 6_200_000n, Token: 800_000n, setFeeTo: 100_000n };
+  const GAS_LIMIT = { WETH9: 800_000n, Factory: 4_000_000n, Router: 6_200_000n, Token: 800_000n, setFeeTo: 100_000n, setFeeToSetter: 100_000n, transfer: 120_000n };
   const KASIF = { 11155111: "https://sepolia.etherscan.io", 84532: "https://sepolia.basescan.org", 1: "https://etherscan.io" }[HEDEF] || null;
   const AG_ADI = { 11155111: "Sepolia", 84532: "Base Sepolia" }[HEDEF] || ("chainId " + HEDEF);
   // Desteklenen test ağları: MetaMask'ta yoksa otomatik eklenir
@@ -110,7 +118,8 @@
     { anahtar: "factory", ad: "Factory (havuz fabrikası)" },
     { anahtar: "router", ad: "Router (takas yönlendirici)" },
     { anahtar: "token", ad: "Token" },
-    { anahtar: "komisyon", ad: "Platform komisyonunu aç (%0,05 sizin adresinize)" },
+    { anahtar: "komisyon", ad: "Platform komisyonunu aç (%0,05 sahip adresine)" },
+    { anahtar: "yetki", ad: "Yönetim yetkisini sahip adresine devret" },
     { anahtar: "dogrula", ad: "Kontrol: kontratlar birbirine doğru bağlı mı?" },
   ];
 
@@ -124,14 +133,17 @@
   function adimlariCiz(aktif) {
     const ol = $("adimlar"); ol.innerHTML = "";
     for (const a of ADIMLAR) {
+      if (a.anahtar === "yetki" && !(kayit.sahip && hesap && kayit.sahip.toLowerCase() !== hesap.toLowerCase())) continue;
       const li = document.createElement("li");
       const ikon = document.createElement("span"); ikon.className = "ikon";
       const govde = document.createElement("div");
-      const baslik = document.createElement("div"); baslik.textContent = a.anahtar === "token" && kayit.sembol ? `Token (${kayit.sembol})` : a.ad;
+      const baslik = document.createElement("div"); baslik.textContent = a.anahtar === "token" && kayit.sembol ? `Token (${kayit.sembol})` : a.anahtar === "weth" && kayit.wethHazir ? "WETH (ağın resmî WETH'i, kurulum gerekmez)" : a.ad;
       govde.appendChild(baslik);
       const adr = ["weth", "factory", "router", "token"].includes(a.anahtar) ? kayit[a.anahtar] : null;
       if (a.anahtar === "dogrula") ikon.textContent = kayit.dogrulandi ? "✅" : aktif === a.anahtar ? "⏳" : "○";
       else if (a.anahtar === "komisyon") ikon.textContent = kayit.komisyon ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else if (a.anahtar === "yetki") ikon.textContent = kayit.yetki ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else if (a.anahtar === "token" && kayit.tokenKur === false) { ikon.textContent = "–"; baslik.textContent = "Token (kurulmuyor)"; }
       else ikon.textContent = adr ? "✅" : aktif === a.anahtar ? "⏳" : "○";
       if (adr && a.anahtar !== "dogrula") {
         const d = document.createElement("div"); d.className = "adres";
@@ -183,7 +195,13 @@
     signer = await provider.getSigner();
     hesap = await signer.getAddress();
     kayit = yukle();
+    // Ağın resmî WETH'i config'te verilmişse (ör. Base ana ağı) yeni WETH kurulmaz
+    if (C.weth && !C.router && !kayit.weth) { kayit.weth = ethers.getAddress(C.weth); kayit.wethHazir = true; kaydet(); }
     if (kayit.ad) { $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; }
+    $("sahip").value = kayit.sahip || C.isletmeci || hesap;
+    if (typeof kayit.tokenKur === "boolean") $("token-kur").checked = kayit.tokenKur;
+    else $("token-kur").checked = $("sahip").value.toLowerCase() === hesap.toLowerCase();
+    if (kayit.factory) { $("sahip").disabled = true; $("token-kur").disabled = true; }
     const bakiye = await provider.getBalance(hesap);
     const fd = await provider.getFeeData();
     const gp = fd.maxFeePerGas || fd.gasPrice || 0n;
@@ -194,7 +212,7 @@
     $("basla").disabled = false;
     if (bakiye < gerekli) durum("Bakiye tahmini ücretin altında görünüyor. Yine de deneyebilirsiniz; yetmezse faucet'ten biraz daha alın.", "hata");
     else durum("");
-    $("basla").textContent = kayit.weth && !kayit.dogrulandi ? "Kuruluma devam et" : kayit.dogrulandi ? "Kurulum zaten tamam" : "Kurulumu başlat";
+    $("basla").textContent = kayit.factory && !kayit.dogrulandi ? "Kuruluma devam et" : kayit.dogrulandi ? "Kurulum zaten tamam" : "Kurulumu başlat";
     adimlariCiz();
     if (kayit.dogrulandi) sonucGoster();
   }
@@ -240,8 +258,12 @@
 
   async function basla() {
     const ad = $("ad").value.trim(), sembol = $("sembol").value.trim(), arzM = $("arz").value.trim();
-    if (!ad || !sembol) { durum("Token adı ve sembolü boş olamaz.", "hata"); return; }
-    if (!/^[1-9][0-9]{0,14}$/.test(arzM)) { durum("Arz 1 ile 999 trilyon arasında bir tam sayı olmalı.", "hata"); return; }
+    let sahip;
+    try { sahip = ethers.getAddress($("sahip").value.trim()); } catch (e) { durum("Komisyon ve yönetim adresi geçerli bir 0x adresi olmalı.", "hata"); return; }
+    if (kayit.sahip && kayit.factory && kayit.sahip.toLowerCase() !== sahip.toLowerCase()) { durum("Kurulum başladıktan sonra sahip adresi değiştirilemez.", "hata"); $("sahip").value = kayit.sahip; return; }
+    const tokenKur = typeof kayit.tokenKur === "boolean" && kayit.factory ? kayit.tokenKur : $("token-kur").checked;
+    if (tokenKur && (!ad || !sembol)) { durum("Token adı ve sembolü boş olamaz.", "hata"); return; }
+    if (tokenKur && !/^[1-9][0-9]{0,14}$/.test(arzM)) { durum("Arz 1 ile 999 trilyon arasında bir tam sayı olmalı.", "hata"); return; }
     if (kayit.token && (kayit.ad !== ad || kayit.sembol !== sembol || kayit.arz !== arzM)) {
       durum("Token zaten kuruldu; adı ve arzı artık değiştirilemez.", "hata");
       $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; return;
@@ -250,36 +272,56 @@
       const b = await provider.getBalance(hesap);
       if (b === 0n) { durum(`${AG_ADI} ağında bakiyeniz 0 görünüyor. Test ETH'si henüz gelmemiş olabilir; birkaç dakika bekleyip tekrar deneyin.`, "hata"); return; }
     } catch (_) {}
-    kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kaydet();
+    kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kayit.sahip = sahip; kayit.tokenKur = tokenKur; kaydet();
     $("teknik").classList.add("gizli");
     $("basla").disabled = true;
-    for (const id of ["ad", "sembol", "arz"]) $(id).disabled = true;
+    for (const id of ["ad", "sembol", "arz", "sahip", "token-kur"]) $(id).disabled = true;
+    const devir = sahip.toLowerCase() !== hesap.toLowerCase();
     try {
       const weth = await kur("WETH9", [], "weth");
       const factory = await kur("Factory", [hesap], "factory");
       await kur("Router", [factory, weth], "router");
-      await kur("Token", [ad, sembol, BigInt(arzM)], "token");
+      if (tokenKur) {
+        await kur("Token", [ad, sembol, BigInt(arzM)], "token");
+        if (devir && !kayit.tokenDevredildi) {
+          adimlariCiz("token");
+          durum("MetaMask'ta onay bekleniyor: token'ların tamamını sahip adresine gönderme…");
+          const tv = new ethers.Interface(K.Token.abi).encodeFunctionData("transfer", [sahip, BigInt(arzM) * 10n ** 18n]);
+          await makbuzBekle(await hamGonder({ to: kayit.token, data: tv, gas: GAS_LIMIT.transfer }));
+          kayit.tokenDevredildi = true; kaydet();
+        }
+      }
 
       if (!kayit.komisyon) {
         adimlariCiz("komisyon");
         durum("MetaMask'ta onay bekleniyor: platform komisyonunu açma…");
-        const veri = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeTo", [hesap]);
+        const veri = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeTo", [sahip]);
         const hash = await hamGonder({ to: kayit.factory, data: veri, gas: GAS_LIMIT.setFeeTo });
         durum("İşlem gönderildi, bekleniyor…");
         await makbuzBekle(hash);
         kayit.komisyon = true; kaydet(); adimlariCiz();
       }
 
+      if (devir && !kayit.yetki) {
+        adimlariCiz("yetki");
+        durum("MetaMask'ta onay bekleniyor: yönetim yetkisini sahip adresine devretme…");
+        const yv = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeToSetter", [sahip]);
+        await makbuzBekle(await hamGonder({ to: kayit.factory, data: yv, gas: GAS_LIMIT.setFeeToSetter }));
+        kayit.yetki = true; kaydet(); adimlariCiz();
+      }
+
       adimlariCiz("dogrula"); durum("Kontroller yapılıyor…");
       const r = new ethers.Contract(kayit.router, K.Router.abi, provider);
       const f = new ethers.Contract(kayit.factory, K.Factory.abi, provider);
-      const t = new ethers.Contract(kayit.token, K.Token.abi, provider);
       const sorunlar = [];
       if ((await r.factory()).toLowerCase() !== kayit.factory.toLowerCase()) sorunlar.push("Router → Factory bağlantısı");
       if ((await r.WETH()).toLowerCase() !== kayit.weth.toLowerCase()) sorunlar.push("Router → WETH bağlantısı");
-      if ((await f.feeToSetter()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Factory yetkisi");
-      if ((await f.feeTo()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Komisyon adresi");
-      if ((await t.balanceOf(hesap)) !== BigInt(arzM) * 10n ** 18n) sorunlar.push("Token bakiyesi");
+      if ((await f.feeToSetter()).toLowerCase() !== sahip.toLowerCase()) sorunlar.push("Factory yetkisi");
+      if ((await f.feeTo()).toLowerCase() !== sahip.toLowerCase()) sorunlar.push("Komisyon adresi");
+      if (tokenKur) {
+        const t = new ethers.Contract(kayit.token, K.Token.abi, provider);
+        if ((await t.balanceOf(sahip)) !== BigInt(arzM) * 10n ** 18n) sorunlar.push("Token bakiyesi");
+      }
       if (sorunlar.length) throw new Error("Kontrol başarısız: " + sorunlar.join(", "));
       kayit.dogrulandi = true; kaydet(); adimlariCiz();
       durum("Kurulum tamamlandı ve kontrol edildi.", "ok");
@@ -300,8 +342,9 @@
   }
 
   function sonucGoster() {
-    const metin = JSON.stringify({ chainId: HEDEF, kurucu: hesap, komisyonAdresi: kayit.komisyon ? hesap : null, weth: kayit.weth, factory: kayit.factory, router: kayit.router,
-      token: { address: kayit.token, symbol: kayit.sembol, ad: kayit.ad, arz: kayit.arz } }, null, 2);
+    const sahipAdr = kayit.sahip || hesap;
+    const metin = JSON.stringify({ chainId: HEDEF, kurucu: hesap, sahip: sahipAdr, komisyonAdresi: kayit.komisyon ? sahipAdr : null, weth: kayit.weth, factory: kayit.factory, router: kayit.router,
+      token: kayit.tokenKur === false ? null : { address: kayit.token, symbol: kayit.sembol, ad: kayit.ad, arz: kayit.arz } }, null, 2);
     $("sonuc").textContent = metin;
     $("sonuc-kart").classList.remove("gizli");
     $("basla").disabled = true; $("basla").textContent = "Kurulum zaten tamam";

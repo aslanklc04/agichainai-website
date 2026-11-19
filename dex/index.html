@@ -120,7 +120,7 @@
 </main>
 
 <script src="ethers.umd.min.js"></script>
-<script src="config.js"></script>
+<script>/* config her açılışta güncel yüklensin (önbellek atlanır) */ document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');</script>
 <script>
 (() => {
   const C = window.DEX_CONFIG;

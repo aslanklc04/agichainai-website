@@ -36,7 +36,7 @@
   <section class="kart" id="bilgi-kart">
     <h2>What does this page do?</h2>
     <p class="ince">Deploys the exchange contracts <b>with your own wallet</b> (Factory, Router and your token; Base's official WETH is reused) and turns on the platform fee to your address.
-    Each step asks for a confirmation in MetaMask. You are the deployer; the full token supply and the fee-setter role stay with your address.
+    Each step asks for a confirmation in MetaMask. Whoever runs the deployment, the platform fee, admin role and tokens go to the owner address below.
     Your private key is never entered on this page. <b>This uses real ETH on Base mainnet.</b></p>
     <p class="ince" id="zaten-kurulu" style="display:none;color:var(--ok)"></p>
   </section>
@@ -48,15 +48,23 @@
   </section>
 
   <section class="kart">
-    <h2>2. Token</h2>
-    <label for="ad">Token name</label><input id="ad" value="AGI" maxlength="40">
-    <label for="sembol">Symbol</label><input id="sembol" value="AGI" maxlength="11">
-    <label for="arz">Total supply (tokens)</label><input id="arz" value="1000000000" inputmode="numeric">
-    <p class="ince">Fixed supply: after deployment no new tokens can be minted, frozen or taxed.</p>
+    <h2>2. Fee & admin address</h2>
+    <label for="sahip">Address that receives the platform fee and controls the exchange</label><input id="sahip" placeholder="0x..." autocomplete="off" spellcheck="false" style="font-size:13px">
+    <p class="ince" id="sahip-not">Even if someone else runs the deployment, the fee and admin role are transferred to this address; the deploying wallet keeps no rights.</p>
   </section>
 
   <section class="kart">
-    <h2>3. Deploy</h2>
+    <h2>3. Token (optional)</h2>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--yazi)"><input type="checkbox" id="token-kur" checked style="width:auto"> Also deploy the token</label>
+    <label for="ad">Token name</label><input id="ad" value="AGI" maxlength="40">
+    <label for="sembol">Symbol</label><input id="sembol" value="AGI" maxlength="11">
+    <label for="arz">Total supply (tokens)</label><input id="arz" value="1000000000" inputmode="numeric">
+    <p class="ince">Fixed supply: after deployment no new tokens can be minted, frozen or taxed. The full supply is sent to the address above.
+    Without a token the exchange still works; users create pools with the coins they bring.</p>
+  </section>
+
+  <section class="kart">
+    <h2>4. Deploy</h2>
     <ol id="adimlar"></ol>
     <div class="ince" id="maliyet"></div>
     <button id="basla" disabled>Start deployment</button>
@@ -73,7 +81,7 @@
 </main>
 
 <script src="ethers.umd.min.js"></script>
-<script src="config.js"></script>
+<script>/* always load the latest config (bypass cache) */ document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');</script>
 <script src="kontratlar.js"></script>
 <script>
 (() => {
@@ -83,7 +91,7 @@
   const HEDEF = Number(C.chainId || 11155111);
   const GAS_TAHMINI = 12_000_000n;
   // Ölçülen gas kullanımı + %30 pay (WETH 604k, Factory 3.05M, Router 4.76M, Token 564k)
-  const GAS_LIMIT = { WETH9: 800_000n, Factory: 4_000_000n, Router: 6_200_000n, Token: 800_000n, setFeeTo: 100_000n };
+  const GAS_LIMIT = { WETH9: 800_000n, Factory: 4_000_000n, Router: 6_200_000n, Token: 800_000n, setFeeTo: 100_000n, setFeeToSetter: 100_000n, transfer: 120_000n };
   const KASIF = { 11155111: "https://sepolia.etherscan.io", 84532: "https://sepolia.basescan.org", 1: "https://etherscan.io" }[HEDEF] || null;
   const AG_ADI = { 8453: "Base", 11155111: "Sepolia", 84532: "Base Sepolia" }[HEDEF] || ("chainId " + HEDEF);
   // Supported networks: added to MetaMask automatically if missing
@@ -112,7 +120,8 @@
     { anahtar: "factory", ad: "Factory (pool factory)" },
     { anahtar: "router", ad: "Router (swap router)" },
     { anahtar: "token", ad: "Token" },
-    { anahtar: "komisyon", ad: "Turn on platform fee (0.05% to your address)" },
+    { anahtar: "komisyon", ad: "Turn on platform fee (0.05% to the owner address)" },
+    { anahtar: "yetki", ad: "Transfer admin role to the owner address" },
     { anahtar: "dogrula", ad: "Check: are the contracts wired correctly?" },
   ];
 
@@ -126,6 +135,7 @@
   function adimlariCiz(aktif) {
     const ol = $("adimlar"); ol.innerHTML = "";
     for (const a of ADIMLAR) {
+      if (a.anahtar === "yetki" && !(kayit.sahip && hesap && kayit.sahip.toLowerCase() !== hesap.toLowerCase())) continue;
       const li = document.createElement("li");
       const ikon = document.createElement("span"); ikon.className = "ikon";
       const govde = document.createElement("div");
@@ -134,6 +144,8 @@
       const adr = ["weth", "factory", "router", "token"].includes(a.anahtar) ? kayit[a.anahtar] : null;
       if (a.anahtar === "dogrula") ikon.textContent = kayit.dogrulandi ? "✅" : aktif === a.anahtar ? "⏳" : "○";
       else if (a.anahtar === "komisyon") ikon.textContent = kayit.komisyon ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else if (a.anahtar === "yetki") ikon.textContent = kayit.yetki ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else if (a.anahtar === "token" && kayit.tokenKur === false) { ikon.textContent = "–"; baslik.textContent = "Token (skipped)"; }
       else ikon.textContent = adr ? "✅" : aktif === a.anahtar ? "⏳" : "○";
       if (adr && a.anahtar !== "dogrula") {
         const d = document.createElement("div"); d.className = "adres";
@@ -188,6 +200,10 @@
     // Ağın resmî WETH'i config'te verilmişse (ör. Base ana ağı) yeni WETH kurulmaz
     if (C.weth && !C.router && !kayit.weth) { kayit.weth = ethers.getAddress(C.weth); kayit.wethHazir = true; kaydet(); }
     if (kayit.ad) { $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; }
+    $("sahip").value = kayit.sahip || C.isletmeci || hesap;
+    if (typeof kayit.tokenKur === "boolean") $("token-kur").checked = kayit.tokenKur;
+    else $("token-kur").checked = $("sahip").value.toLowerCase() === hesap.toLowerCase();
+    if (kayit.factory) { $("sahip").disabled = true; $("token-kur").disabled = true; }
     const bakiye = await provider.getBalance(hesap);
     const fd = await provider.getFeeData();
     const gp = fd.maxFeePerGas || fd.gasPrice || 0n;
@@ -244,8 +260,12 @@
 
   async function basla() {
     const ad = $("ad").value.trim(), sembol = $("sembol").value.trim(), arzM = $("arz").value.trim();
-    if (!ad || !sembol) { durum("Token name and symbol cannot be empty.", "hata"); return; }
-    if (!/^[1-9][0-9]{0,14}$/.test(arzM)) { durum("Supply must be a whole number between 1 and 999 trillion.", "hata"); return; }
+    let sahip;
+    try { sahip = ethers.getAddress($("sahip").value.trim()); } catch (e) { durum("The fee & admin address must be a valid 0x address.", "hata"); return; }
+    if (kayit.sahip && kayit.factory && kayit.sahip.toLowerCase() !== sahip.toLowerCase()) { durum("The owner address cannot be changed after deployment has started.", "hata"); $("sahip").value = kayit.sahip; return; }
+    const tokenKur = typeof kayit.tokenKur === "boolean" && kayit.factory ? kayit.tokenKur : $("token-kur").checked;
+    if (tokenKur && (!ad || !sembol)) { durum("Token name and symbol cannot be empty.", "hata"); return; }
+    if (tokenKur && !/^[1-9][0-9]{0,14}$/.test(arzM)) { durum("Supply must be a whole number between 1 and 999 trillion.", "hata"); return; }
     if (kayit.token && (kayit.ad !== ad || kayit.sembol !== sembol || kayit.arz !== arzM)) {
       durum("The token is already deployed; its name and supply cannot be changed.", "hata");
       $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; return;
@@ -254,36 +274,56 @@
       const b = await provider.getBalance(hesap);
       if (b === 0n) { durum(`Your balance on ${AG_ADI} is 0. Fund the wallet with ETH on ${AG_ADI} and try again.`, "hata"); return; }
     } catch (_) {}
-    kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kaydet();
+    kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kayit.sahip = sahip; kayit.tokenKur = tokenKur; kaydet();
     $("teknik").classList.add("gizli");
     $("basla").disabled = true;
-    for (const id of ["ad", "sembol", "arz"]) $(id).disabled = true;
+    for (const id of ["ad", "sembol", "arz", "sahip", "token-kur"]) $(id).disabled = true;
+    const devir = sahip.toLowerCase() !== hesap.toLowerCase();
     try {
       const weth = await kur("WETH9", [], "weth");
       const factory = await kur("Factory", [hesap], "factory");
       await kur("Router", [factory, weth], "router");
-      await kur("Token", [ad, sembol, BigInt(arzM)], "token");
+      if (tokenKur) {
+        await kur("Token", [ad, sembol, BigInt(arzM)], "token");
+        if (devir && !kayit.tokenDevredildi) {
+          adimlariCiz("token");
+          durum("Waiting for confirmation in MetaMask: sending the full token supply to the owner…");
+          const tv = new ethers.Interface(K.Token.abi).encodeFunctionData("transfer", [sahip, BigInt(arzM) * 10n ** 18n]);
+          await makbuzBekle(await hamGonder({ to: kayit.token, data: tv, gas: GAS_LIMIT.transfer }));
+          kayit.tokenDevredildi = true; kaydet();
+        }
+      }
 
       if (!kayit.komisyon) {
         adimlariCiz("komisyon");
         durum("Waiting for confirmation in MetaMask: turning on the platform fee…");
-        const veri = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeTo", [hesap]);
+        const veri = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeTo", [sahip]);
         const hash = await hamGonder({ to: kayit.factory, data: veri, gas: GAS_LIMIT.setFeeTo });
         durum("Transaction sent, waiting…");
         await makbuzBekle(hash);
         kayit.komisyon = true; kaydet(); adimlariCiz();
       }
 
+      if (devir && !kayit.yetki) {
+        adimlariCiz("yetki");
+        durum("Waiting for confirmation in MetaMask: transferring the admin role to the owner…");
+        const yv = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeToSetter", [sahip]);
+        await makbuzBekle(await hamGonder({ to: kayit.factory, data: yv, gas: GAS_LIMIT.setFeeToSetter }));
+        kayit.yetki = true; kaydet(); adimlariCiz();
+      }
+
       adimlariCiz("dogrula"); durum("Running checks…");
       const r = new ethers.Contract(kayit.router, K.Router.abi, provider);
       const f = new ethers.Contract(kayit.factory, K.Factory.abi, provider);
-      const t = new ethers.Contract(kayit.token, K.Token.abi, provider);
       const sorunlar = [];
       if ((await r.factory()).toLowerCase() !== kayit.factory.toLowerCase()) sorunlar.push("Router → Factory link");
       if ((await r.WETH()).toLowerCase() !== kayit.weth.toLowerCase()) sorunlar.push("Router → WETH link");
-      if ((await f.feeToSetter()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Factory fee-setter");
-      if ((await f.feeTo()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Fee address");
-      if ((await t.balanceOf(hesap)) !== BigInt(arzM) * 10n ** 18n) sorunlar.push("Token balance");
+      if ((await f.feeToSetter()).toLowerCase() !== sahip.toLowerCase()) sorunlar.push("Factory fee-setter");
+      if ((await f.feeTo()).toLowerCase() !== sahip.toLowerCase()) sorunlar.push("Fee address");
+      if (tokenKur) {
+        const t = new ethers.Contract(kayit.token, K.Token.abi, provider);
+        if ((await t.balanceOf(sahip)) !== BigInt(arzM) * 10n ** 18n) sorunlar.push("Token balance");
+      }
       if (sorunlar.length) throw new Error("Check failed: " + sorunlar.join(", "));
       kayit.dogrulandi = true; kaydet(); adimlariCiz();
       durum("Deployment complete and verified.", "ok");
@@ -304,8 +344,9 @@
   }
 
   function sonucGoster() {
-    const metin = JSON.stringify({ chainId: HEDEF, kurucu: hesap, komisyonAdresi: kayit.komisyon ? hesap : null, weth: kayit.weth, factory: kayit.factory, router: kayit.router,
-      token: { address: kayit.token, symbol: kayit.sembol, ad: kayit.ad, arz: kayit.arz } }, null, 2);
+    const sahipAdr = kayit.sahip || hesap;
+    const metin = JSON.stringify({ chainId: HEDEF, kurucu: hesap, sahip: sahipAdr, komisyonAdresi: kayit.komisyon ? sahipAdr : null, weth: kayit.weth, factory: kayit.factory, router: kayit.router,
+      token: kayit.tokenKur === false ? null : { address: kayit.token, symbol: kayit.sembol, ad: kayit.ad, arz: kayit.arz } }, null, 2);
     $("sonuc").textContent = metin;
     $("sonuc-kart").classList.remove("gizli");
     $("basla").disabled = true; $("basla").textContent = "Setup already complete";
