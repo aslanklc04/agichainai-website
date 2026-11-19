@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGIChainAI Doğrulama</title>
+<meta name="description" content="Bir kaydın blokzincirde değiştirilmeden durduğunu kendiniz doğrulayın.">
+<style>
+  :root { --bg:#0f1115; --kart:#181b22; --kenar:#2a2f3a; --yazi:#e8eaf0; --soluk:#8b93a5; --vurgu:#4f8cff; --hata:#ff6b6b; --ok:#3ecf8e; --uyari:#f5d77a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--yazi); line-height:1.5; }
+  header { padding:14px 18px; border-bottom:1px solid var(--kenar); display:flex; justify-content:space-between; align-items:center; }
+  header b { font-size:18px; } header a { color:var(--vurgu); font-size:14px; text-decoration:none; }
+  main { max-width:640px; margin:20px auto 40px; padding:0 14px; }
+  h1 { font-size:21px; margin:4px 0; } .alt { color:var(--soluk); font-size:14px; margin:0 0 16px; }
+  section { background:var(--kart); border:1px solid var(--kenar); border-radius:14px; padding:16px; margin-bottom:14px; }
+  textarea { width:100%; min-height:120px; background:var(--bg); color:var(--yazi); border:1px solid var(--kenar); border-radius:8px; padding:10px; font-family:ui-monospace,monospace; font-size:12px; }
+  button { width:100%; background:var(--vurgu); color:#fff; border:none; border-radius:10px; padding:12px; font-size:15px; margin-top:10px; cursor:pointer; }
+  ol { list-style:none; padding:0; margin:0; }
+  li { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--kenar); font-size:14px; }
+  li:last-child { border-bottom:none; }
+  .ikon { width:22px; flex-shrink:0; text-align:center; }
+  .detay { color:var(--soluk); font-size:12px; word-break:break-all; margin-top:2px; }
+  .detay a { color:var(--vurgu); }
+  .sonuc { font-size:15px; padding:12px; border-radius:10px; margin-top:6px; }
+  .s-ok { background:#173a2c; color:var(--ok); } .s-uy { background:#3a3417; color:var(--uyari); } .s-hata { background:#3a1717; color:var(--hata); }
+  table { width:100%; border-collapse:collapse; font-size:13px; } td { padding:6px 4px; border-bottom:1px solid var(--kenar); vertical-align:top; word-break:break-all; }
+  td:first-child { color:var(--soluk); width:40%; } tr:last-child td { border-bottom:none; }
+  .gizli { display:none; } .ince { color:var(--soluk); font-size:13px; }
+</style>
+</head>
+<body>
+<header><b>AGIChainAI <span style="color:var(--vurgu)">Doğrulama</span></b><a href="/">agichainai.com</a></header>
+<main>
+  <h1>Kaydı kendiniz doğrulayın</h1>
+  <p class="alt">Bir kaydın belirli bir tarihte blokzincire yazıldığını ve o tarihten beri değişmediğini, kimseye güvenmeden kontrol edin. <i>Verify a record on-chain.</i></p>
+
+  <section id="giris">
+    <label class="ince" for="kanit">Kanıt (Meydan'daki "Doğrula" bağlantısı bunu otomatik doldurur)</label>
+    <textarea id="kanit" spellcheck="false" placeholder='{"surum":1,"kok":"0x…","kayit":{…},"kanit":["0x…"]}'></textarea>
+    <button id="dogrula">Doğrula</button>
+  </section>
+
+  <section id="sonuc-kart" class="gizli">
+    <ol id="adimlar"></ol>
+    <div id="ozet" class="sonuc"></div>
+  </section>
+
+  <section id="kayit-kart" class="gizli">
+    <b style="font-size:15px">Kaydın içeriği</b>
+    <table id="kayit-tablo"></table>
+    <p class="ince">Kişisel bilgi blokzincirde tutulmaz: kullanıcı kimliği yalnızca geri çevrilemez bir özet olarak yer alır.</p>
+  </section>
+
+  <section>
+    <b style="font-size:15px">Nasıl çalışır?</b>
+    <p class="ince">Her gün o güne ait kayıtların tek bir özeti (Merkle kökü) blokzincirdeki değiştirilemez bir deftere yazılır. Bu sayfa, sizin kaydınızın o özete dahil olduğunu tarayıcınızda hesaplar ve özetin defterde gerçekten durduğunu doğrudan blokzincirden okur. Sunucumuza güvenmeniz gerekmez.</p>
+    <p class="ince" id="ag-bilgi"></p>
+  </section>
+</main>
+
+<script src="ethers.umd.min.js"></script>
+<script src="merkle.js"></script>
+<script>/* ayarlar her açılışta güncel yüklensin */ document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');</script>
+<script>
+(() => {
+  const C = window.DOGRULA_CONFIG || {};
+  const M = window.KayitMerkle;
+  const $ = (id) => document.getElementById(id);
+  const DEFTER_ABI = ["function kayit(bytes32) view returns (address yazan, uint64 zaman, uint64 blok)"];
+  const ALAN_ADLARI = { tahminId: "Tahmin no", etkinlikId: "Etkinlik no", secenekId: "Seçilen seçenek", kullaniciOzeti: "Kullanıcı özeti", zaman: "Kayıt zamanı",
+    sonucSecenekId: "Sonuç", soruOzeti: "Soru özeti", cevapOzeti: "Cevap özeti" };
+  const TUR_ADLARI = { "meydan:tahmin:v1": "Meydan — tahmin", "meydan:sonuc:v1": "Meydan — etkinlik sonucu", "consensus:v1": "Consensus — analiz" };
+
+  $("ag-bilgi").textContent = "Ağ: " + (C.agAdi || C.chainId) + (C.defter ? " · Defter: " + C.defter : " · Defter henüz kurulmadı");
+  const tarih = (s) => new Date(Number(s) * 1000).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "medium" });
+  const kasifLink = (tur, x) => C.kasif ? `${C.kasif}/${tur}/${x}` : null;
+
+  function adim(durum, baslik, detay, link) {
+    const li = document.createElement("li");
+    const i = document.createElement("span"); i.className = "ikon"; i.textContent = { ok: "✅", uy: "⚠️", hata: "❌", bekle: "⏳" }[durum];
+    const g = document.createElement("div"); const b = document.createElement("div"); b.textContent = baslik; g.appendChild(b);
+    if (detay) { const d = document.createElement("div"); d.className = "detay";
+      if (link) { const a = document.createElement("a"); a.href = link; a.target = "_blank"; a.rel = "noopener"; a.textContent = detay; d.appendChild(a); } else d.textContent = detay;
+      g.appendChild(d); }
+    li.append(i, g); $("adimlar").appendChild(li); return li;
+  }
+  function ozet(tur, metin) { $("ozet").className = "sonuc s-" + tur; $("ozet").textContent = metin; }
+
+  function kayitTablosu(k) {
+    const t = $("kayit-tablo"); t.innerHTML = "";
+    const satir = (a, b) => { const tr = document.createElement("tr"); const x = document.createElement("td"); const y = document.createElement("td"); x.textContent = a; y.textContent = b; tr.append(x, y); t.appendChild(tr); };
+    satir("Tür", TUR_ADLARI[k.tur] || k.tur);
+    for (const [ad] of (M.TURLER[k.tur] || [])) satir(ALAN_ADLARI[ad] || ad, ad === "zaman" ? tarih(k[ad]) + " (" + k[ad] + ")" : String(k[ad]));
+    $("kayit-kart").classList.remove("gizli");
+  }
+
+  async function dogrula() {
+    $("adimlar").innerHTML = ""; $("sonuc-kart").classList.remove("gizli"); $("kayit-kart").classList.add("gizli"); ozet("uy", "Doğrulanıyor…");
+    let p;
+    try { p = JSON.parse($("kanit").value.trim()); } catch (e) { adim("hata", "Kanıt okunamadı", "Geçerli bir JSON değil."); ozet("hata", "Doğrulanamadı."); return; }
+    try {
+      if (!p || !p.kayit || !Array.isArray(p.kanit) || !/^0x[0-9a-fA-F]{64}$/.test(p.kok || "")) throw new Error("Kanıtta kok, kayit ve kanit alanları olmalı.");
+      if (!p.kanit.every((h) => /^0x[0-9a-fA-F]{64}$/.test(h))) throw new Error("Kanıt listesinde geçersiz değer var.");
+    } catch (e) { adim("hata", "Kanıt biçimi hatalı", e.message); ozet("hata", "Doğrulanamadı."); return; }
+
+    // 1) Parmak izi kayıt alanlarından YENİDEN hesaplanır (kanıttaki hiçbir hash'e güvenilmez)
+    let yaprak;
+    try { yaprak = M.yaprakHash(p.kayit); adim("ok", "Kaydın parmak izi hesaplandı", yaprak); kayitTablosu(p.kayit); }
+    catch (e) { adim("hata", "Kayıt alanları geçersiz", e.message); ozet("hata", "Doğrulanamadı."); return; }
+
+    // 2) Kanıt kökle eşleşiyor mu?
+    const hesap = M.kokHesapla(yaprak, p.kanit);
+    if (hesap.toLowerCase() !== p.kok.toLowerCase()) { adim("hata", "Kanıt kökle eşleşmiyor", "Kayıt değiştirilmiş veya kanıt bu güne ait değil."); ozet("hata", "Bu kayıt doğrulanamadı: içerik, yayımlanan özetle uyuşmuyor."); return; }
+    adim("ok", "Kayıt, günlük özete (Merkle kökü) dahil", p.kok);
+
+    // 3) Doğru ağ ve doğru defter mi? (Defter adresi kanıttan değil, bu sitenin ayarından gelir)
+    if (!C.defter) { adim("uy", "Defter henüz kurulmadı", "Zincir kontrolü yapılamıyor."); ozet("uy", "Kayıt ve kanıt tutarlı, ancak blokzincir kontrolü için defter henüz kurulmadı."); return; }
+    if ((p.defter && p.defter.toLowerCase() !== C.defter.toLowerCase()) || (p.chainId && Number(p.chainId) !== Number(C.chainId)))
+      adim("uy", "Kanıttaki defter/ağ bilgisi farklı", "Sayfa yalnızca güvenilen defteri kontrol eder: " + C.defter);
+
+    // 4) Kök blokzincirde kayıtlı mı?
+    const bekliyor = adim("bekle", "Blokzincir okunuyor…");
+    let yazan, zaman, blok;
+    try {
+      const pr = new ethers.JsonRpcProvider(C.rpc, Number(C.chainId), { staticNetwork: true });
+      [yazan, zaman, blok] = await new ethers.Contract(C.defter, DEFTER_ABI, pr).kayit(p.kok);
+    } catch (e) { bekliyor.remove(); adim("hata", "Blokzincire ulaşılamadı", "Biraz sonra tekrar deneyin."); ozet("uy", "Kayıt ve kanıt tutarlı, ancak blokzincir şu an okunamadı."); return; }
+    bekliyor.remove();
+    if (yazan === ethers.ZeroAddress) { adim("hata", "Bu özet defterde kayıtlı değil", p.kok); ozet("hata", "Doğrulanamadı: özet blokzincirde bulunamadı."); return; }
+    adim("ok", "Özet blokzincirde kayıtlı · " + tarih(zaman), "Blok " + blok + " · defteri görüntüle", kasifLink("address", C.defter));
+
+    // 5) Yayıncı güvenilir mi?
+    const yayinci = Object.entries(C.yayincilar || {}).find(([a]) => a.toLowerCase() === yazan.toLowerCase());
+    if (yayinci) adim("ok", "Yayıncı: " + yayinci[1], yazan, kasifLink("address", yazan));
+    else adim("uy", "Yayıncı tanınmıyor", yazan + " — bu adres güvenilen yayıncılar listesinde değil.", kasifLink("address", yazan));
+
+    const kayitZamani = p.kayit.zaman ? " Kaydın kendi zamanı: " + tarih(p.kayit.zaman) + "." : "";
+    if (yayinci) ozet("ok", `Doğrulandı. Bu kayıt en geç ${tarih(zaman)} tarihinde blokzincirde vardı ve o zamandan beri değişmedi.${kayitZamani}`);
+    else ozet("uy", `Kayıt blokzincirde var (${tarih(zaman)}), ancak yazan adres güvenilen bir yayıncı değil.`);
+  }
+
+  $("dogrula").addEventListener("click", dogrula);
+  // Meydan bağlantısı: #k=<base64url JSON>
+  const m = location.hash.match(/[#&]k=([A-Za-z0-9_-]+)/);
+  if (m) {
+    try {
+      const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      const json = new TextDecoder().decode(Uint8Array.from(atob(b64 + "===".slice((b64.length + 3) % 4)), (c) => c.charCodeAt(0)));
+      $("kanit").value = JSON.stringify(JSON.parse(json), null, 2); dogrula();
+    } catch (e) { ozet("hata", "Bağlantıdaki kanıt okunamadı."); $("sonuc-kart").classList.remove("gizli"); }
+  }
+})();
+</script>
+</body>
+</html>

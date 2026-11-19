@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGIChainAI — Kayıt defteri kurulumu</title>
+<style>
+  :root { --bg:#0f1115; --kart:#181b22; --kenar:#2a2f3a; --yazi:#e8eaf0; --soluk:#8b93a5; --vurgu:#4f8cff; --hata:#ff6b6b; --ok:#3ecf8e; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--yazi); }
+  header { padding:14px 18px; border-bottom:1px solid var(--kenar); font-weight:700; font-size:18px; }
+  main { max-width:460px; margin:20px auto; padding:0 14px; }
+  section { background:var(--kart); border:1px solid var(--kenar); border-radius:14px; padding:16px; margin-bottom:14px; }
+  button { width:100%; background:var(--vurgu); color:#fff; border:none; border-radius:10px; padding:13px; font-size:16px; margin-top:10px; }
+  button:disabled { opacity:.45; } .ince { font-size:13px; color:var(--soluk); line-height:1.5; }
+  .durum { min-height:20px; font-size:13px; margin-top:10px; word-break:break-word; } .hata { color:var(--hata); } .ok { color:var(--ok); }
+  pre { background:var(--bg); border:1px solid var(--kenar); border-radius:8px; padding:10px; font-size:12px; white-space:pre-wrap; word-break:break-all; }
+</style>
+</head>
+<body>
+<header>Kayıt defteri kurulumu</header>
+<main>
+  <section>
+    <p class="ince">Değiştirilemez parmak izi defterini (KayitDefteri) kendi cüzdanınızla <b id="ag"></b> ağına kurar. Tek onay gerekir. Defterin sahibi veya yöneticisi yoktur; kurulduktan sonra kimse kayıtları değiştiremez.</p>
+    <button id="baglan">Cüzdan bağla</button>
+    <button id="kur" disabled>Defteri kur</button>
+    <div class="durum" id="durum"></div>
+  </section>
+  <section id="sonuc" style="display:none">
+    <b>Defter kuruldu</b><p class="ince">Bu adresi Claude'a gönderin:</p><pre id="adres"></pre>
+  </section>
+</main>
+<script src="ethers.umd.min.js"></script>
+<script src="defter-kontrat.js"></script>
+<script>document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');</script>
+<script>
+(() => {
+  const C = window.DOGRULA_CONFIG, K = window.DEFTER_KONTRAT, $ = (id) => document.getElementById(id);
+  const AGLAR = { 84532: { chainId: "0x14a34", chainName: "Base Sepolia", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, rpcUrls: ["https://sepolia.base.org"], blockExplorerUrls: ["https://sepolia.basescan.org"] },
+                  8453: { chainId: "0x2105", chainName: "Base", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, rpcUrls: ["https://mainnet.base.org"], blockExplorerUrls: ["https://basescan.org"] } };
+  let provider, hesap;
+  $("ag").textContent = C.agAdi || C.chainId;
+  const durum = (m, t) => { $("durum").textContent = m; $("durum").className = "durum " + (t || ""); };
+  $("baglan").onclick = async () => {
+    try {
+      if (!window.ethereum) return durum("Bu sayfayı MetaMask uygulamasının tarayıcısında açın.", "hata");
+      provider = new ethers.BrowserProvider(window.ethereum);
+      [hesap] = await provider.send("eth_requestAccounts", []);
+      const hex = "0x" + Number(C.chainId).toString(16);
+      if (Number((await provider.getNetwork()).chainId) !== Number(C.chainId)) {
+        try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] }); }
+        catch (e) { if (AGLAR[C.chainId]) await window.ethereum.request({ method: "wallet_addEthereumChain", params: [AGLAR[C.chainId]] }); else throw e; }
+        provider = new ethers.BrowserProvider(window.ethereum);
+      }
+      const b = await provider.getBalance(hesap);
+      durum(`Bağlandı: ${hesap.slice(0, 8)}… · Bakiye ${Number(ethers.formatEther(b)).toFixed(5)} ETH`, b > 0n ? "ok" : "hata");
+      $("baglan").disabled = true; $("kur").disabled = b === 0n;
+      if (C.defter) durum("Not: Bu sitede zaten bir defter kayıtlı (" + C.defter + "). Yeni defter sadece gerekiyorsa kurun.", "hata");
+    } catch (e) { durum("Hata: " + (e.shortMessage || e.message), "hata"); }
+  };
+  $("kur").onclick = async () => {
+    $("kur").disabled = true;
+    try {
+      durum("MetaMask'ta onay bekleniyor…");
+      const hash = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from: hesap, data: K.bytecode, gas: "0x" + (600000).toString(16) }] });
+      durum("Gönderildi, bekleniyor… " + hash.slice(0, 12) + "…");
+      let m = null; for (let i = 0; i < 180 && !m; i++) { m = await provider.getTransactionReceipt(hash).catch(() => null); if (!m) await new Promise((r) => setTimeout(r, 2000)); }
+      if (!m || m.status !== 1 || !m.contractAddress) throw new Error("Kurulum başarısız. Hash: " + hash);
+      const d = new ethers.Contract(m.contractAddress, K.abi, provider);
+      if ((await d.kayitSayisi()) !== 0n) throw new Error("Beklenmeyen defter durumu");
+      $("adres").textContent = ethers.getAddress(m.contractAddress); $("sonuc").style.display = "block"; durum("Defter kuruldu ve kontrol edildi.", "ok");
+    } catch (e) { durum(e.code === 4001 || e.code === "ACTION_REJECTED" ? "Onayı reddettiniz." : "Hata: " + (e.shortMessage || e.message), "hata"); $("kur").disabled = false; }
+  };
+})();
+</script>
+</body>
+</html>
