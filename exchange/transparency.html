@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGIChainAI Exchange — Transparency</title>
+<meta name="description" content="Contract addresses, fees, admin powers, security status and risks of the AGIChainAI Exchange on Base.">
+<style>
+  :root { --bg:#0f1115; --kart:#181b22; --kenar:#2a2f3a; --yazi:#e8eaf0; --soluk:#8b93a5; --vurgu:#4f8cff; --hata:#ff6b6b; --ok:#3ecf8e; --uyari:#f5d77a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--yazi); line-height:1.55; }
+  header { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--kenar); }
+  header b { font-size:18px; } header a { color:var(--vurgu); text-decoration:none; font-size:14px; }
+  main { max-width:720px; margin:20px auto 40px; padding:0 14px; }
+  h1 { font-size:22px; margin:6px 0 4px; } .alt { color:var(--soluk); font-size:14px; margin:0 0 18px; }
+  section { background:var(--kart); border:1px solid var(--kenar); border-radius:14px; padding:16px; margin-bottom:14px; }
+  h2 { font-size:16px; margin:0 0 10px; }
+  p, li { font-size:14px; } ul { padding-left:18px; margin:6px 0; } li { margin:4px 0; }
+  .ince { color:var(--soluk); font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td { padding:8px 4px; border-bottom:1px solid var(--kenar); vertical-align:top; }
+  td:first-child { color:var(--soluk); width:38%; padding-right:10px; }
+  tr:last-child td { border-bottom:none; }
+  .adres { font-family:ui-monospace,monospace; font-size:12px; word-break:break-all; }
+  .adres a { color:var(--vurgu); }
+  .rozet { display:inline-block; font-size:11px; padding:1px 7px; border-radius:20px; margin-left:4px; vertical-align:1px; }
+  .r-ok { background:#173a2c; color:var(--ok); } .r-uy { background:#3a3417; color:var(--uyari); } .r-hata { background:#3a1717; color:var(--hata); }
+  .bant { background:#2a2410; color:var(--uyari); font-size:13px; padding:10px 12px; border-radius:10px; margin-bottom:14px; }
+</style>
+</head>
+<body>
+<header>
+  <b>AGIChainAI <span style="color:var(--vurgu)">Exchange</span></b>
+  <a href="./">Open exchange →</a>
+</header>
+<main>
+  <h1>Transparency</h1>
+  <p class="alt">Everything you should know before using this exchange. Values marked <span class="rozet r-ok">on-chain</span> are read live from the Base blockchain, not typed by us.</p>
+
+  <div class="bant">⚠️ This is an independent, unaudited project. Crypto assets are volatile and transactions are irreversible. Only use funds you can afford to lose. Not available to residents of Türkiye.</div>
+
+  <section>
+    <h2>Contracts</h2>
+    <table id="kontratlar"><tr><td colspan="2" class="ince">Loading…</td></tr></table>
+    <p class="ince" id="okuma-durum"></p>
+  </section>
+
+  <section>
+    <h2>Fees</h2>
+    <ul>
+      <li><b>0.30%</b> per swap, paid by the trader — the standard Uniswap V2 fee.</li>
+      <li id="ucret-dagilim">Of that, <b>0.25%</b> goes to liquidity providers and <b>0.05%</b> to the platform fee address (when the platform fee is on).</li>
+      <li>No deposit, withdrawal or listing fees. Network gas is paid by the user to Base, not to us.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What the admin can and cannot do</h2>
+    <p>The admin (fee-setter) address can only:</p>
+    <ul><li>turn the 0.05% platform fee on or off and change its recipient;</li><li>hand this role to another address.</li></ul>
+    <p>The admin <b>cannot</b>:</p>
+    <ul>
+      <li>move, freeze or seize anyone's tokens or liquidity;</li>
+      <li>pause trading, block users or change swap prices;</li>
+      <li>upgrade or change the contract code — the contracts are immutable.</li>
+    </ul>
+    <p class="ince">The Factory and Pair contracts have no other privileged functions. Their code is the public Uniswap V2 source; source verification on the block explorer will be added after deployment so anyone can check this directly.</p>
+  </section>
+
+  <section>
+    <h2>Security status</h2>
+    <table>
+      <tr><td>Core contracts</td><td>Original Uniswap V2 Factory, Pair and Router02 <span class="rozet r-ok">audited upstream</span><br><span class="ince">Unmodified except the pair init-code hash required for a fresh deployment. Uniswap V2 has secured large amounts of value since 2020.</span></td></tr>
+      <tr><td>Tests</td><td>46 contract tests (incl. reentrancy, flash-swap, slippage and a 400-step randomized invariant test), ~99% line coverage, mutation testing, static analysis (Slither) <span class="rozet r-ok">passing</span></td></tr>
+      <tr><td>Web interface &amp; setup page</td><td>Written for this project <span class="rozet r-uy">not independently audited</span><br><span class="ince">Approvals are limited to the exact trade amount; slippage and deadline protection are on by default.</span></td></tr>
+      <tr><td>Independent audit</td><td><span class="rozet r-hata">none yet</span></td></tr>
+      <tr><td>Bug bounty</td><td><span class="rozet r-hata">none yet</span> — report issues via the contact below.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Risks</h2>
+    <ul>
+      <li><b>Anyone can list a token.</b> Fake or malicious tokens may appear. Always verify a token's contract address from its official source.</li>
+      <li><b>Price impact &amp; MEV.</b> Small pools move a lot on each trade; bots may front-run. Keep slippage tolerance low.</li>
+      <li><b>Impermanent loss.</b> Liquidity providers can end up with less value than simply holding.</li>
+      <li><b>Smart-contract risk.</b> Even audited code can have undiscovered bugs, and immutable contracts cannot be patched.</li>
+      <li><b>Website risk.</b> Always check you are on <b>agichainai.com</b>. We will never ask for your seed phrase.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Testnet demo</h2>
+    <p>A full copy runs on the Base Sepolia test network with test tokens of no value: <a href="/dex/" style="color:var(--vurgu)">agichainai.com/dex</a>.</p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p>Questions or security reports: <a href="/#contact" style="color:var(--vurgu)">agichainai.com/#contact</a></p>
+    <p class="ince">This page and the exchange are provided as-is, without warranties. Nothing here is financial advice.</p>
+  </section>
+</main>
+
+<script src="ethers.umd.min.js"></script>
+<script>/* always load the latest config (bypass cache) */ document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');</script>
+<script>
+(async () => {
+  const C = window.DEX_CONFIG || {};
+  const $ = (id) => document.getElementById(id);
+  const KASIF = { 8453: "https://basescan.org", 84532: "https://sepolia.basescan.org" }[C.chainId] || null;
+  const RPC = C.rpc || { 8453: "https://mainnet.base.org", 84532: "https://sepolia.base.org" }[C.chainId];
+  const AG = { 8453: "Base", 84532: "Base Sepolia" }[C.chainId] || ("chain " + C.chainId);
+
+  function adresHucre(adr) {
+    const d = document.createElement("span"); d.className = "adres";
+    if (!adr) { d.textContent = "not deployed yet"; return d; }
+    if (KASIF) { const a = document.createElement("a"); a.href = `${KASIF}/address/${adr}`; a.target = "_blank"; a.rel = "noopener"; a.textContent = adr; d.appendChild(a); }
+    else d.textContent = adr;
+    return d;
+  }
+  function satir(etiket, icerik, rozet) {
+    const tr = document.createElement("tr"); const t1 = document.createElement("td"); const t2 = document.createElement("td");
+    t1.textContent = etiket;
+    t2.appendChild(typeof icerik === "string" ? document.createTextNode(icerik) : icerik);
+    if (rozet) { const r = document.createElement("span"); r.className = "rozet " + rozet[1]; r.textContent = rozet[0]; t2.appendChild(r); }
+    tr.append(t1, t2); return tr;
+  }
+
+  const tbl = $("kontratlar"); tbl.innerHTML = "";
+  tbl.appendChild(satir("Network", `${AG} (chain ID ${C.chainId})`));
+  tbl.appendChild(satir("Factory", adresHucre(C.factory)));
+  tbl.appendChild(satir("Router", adresHucre(C.router)));
+  tbl.appendChild(satir("WETH", adresHucre(C.weth)));
+  for (const t of C.tokens || []) tbl.appendChild(satir(`Token (${String(t.symbol).slice(0, 12)})`, adresHucre(t.address)));
+
+  if (!C.factory || !RPC) { $("okuma-durum").textContent = "The exchange has not been deployed yet; on-chain values will appear here after deployment."; return; }
+  try {
+    const p = new ethers.JsonRpcProvider(RPC, Number(C.chainId), { staticNetwork: true });
+    const f = new ethers.Contract(C.factory, ["function feeTo() view returns (address)", "function feeToSetter() view returns (address)", "function allPairsLength() view returns (uint)"], p);
+    const r = new ethers.Contract(C.router, ["function factory() view returns (address)", "function WETH() view returns (address)"], p);
+    const [feeTo, setter, ciftler, rf, rw] = await Promise.all([f.feeTo(), f.feeToSetter(), f.allPairsLength(), r.factory(), r.WETH()]);
+    const sifir = feeTo === ethers.ZeroAddress;
+    tbl.appendChild(satir("Platform fee recipient", sifir ? document.createTextNode("platform fee is off") : adresHucre(feeTo), ["on-chain", "r-ok"]));
+    tbl.appendChild(satir("Admin (fee-setter)", adresHucre(setter), ["on-chain", "r-ok"]));
+    tbl.appendChild(satir("Pools created", ciftler.toString(), ["on-chain", "r-ok"]));
+    const dogru = rf.toLowerCase() === C.factory.toLowerCase() && rw.toLowerCase() === C.weth.toLowerCase();
+    tbl.appendChild(satir("Router wiring", dogru ? "Router points to this Factory and WETH" : "MISMATCH — do not use", dogru ? ["on-chain", "r-ok"] : ["check failed", "r-hata"]));
+    if (sifir) $("ucret-dagilim").textContent = "The platform fee is currently off, so the full 0.30% goes to liquidity providers.";
+    $("okuma-durum").textContent = "Read live from " + AG + " just now.";
+  } catch (e) {
+    $("okuma-durum").textContent = "Could not read live values from the blockchain right now. Use the explorer links above to verify.";
+  }
+})();
+</script>
+</body>
+</html>
