@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGIChainAI Exchange — Setup</title>
+<style>
+  :root { --bg:#0f1115; --kart:#181b22; --kenar:#2a2f3a; --yazi:#e8eaf0; --soluk:#8b93a5; --vurgu:#4f8cff; --hata:#ff6b6b; --ok:#3ecf8e; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--yazi); }
+  header { padding:14px 18px; border-bottom:1px solid var(--kenar); font-weight:700; font-size:18px; }
+  main { max-width:460px; margin:20px auto; padding:0 14px; }
+  .kart { background:var(--kart); border:1px solid var(--kenar); border-radius:14px; padding:16px; margin-bottom:14px; }
+  h2 { font-size:15px; margin:0 0 10px; }
+  label { display:block; font-size:12px; color:var(--soluk); margin:10px 0 4px; }
+  input { width:100%; background:var(--bg); border:1px solid var(--kenar); border-radius:8px; color:var(--yazi); font-size:16px; padding:10px; }
+  button { width:100%; background:var(--vurgu); color:#fff; border:none; border-radius:10px; padding:13px; font-size:16px; margin-top:12px; cursor:pointer; }
+  button.ikincil { background:transparent; border:1px solid var(--kenar); color:var(--yazi); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .ince { font-size:13px; color:var(--soluk); line-height:1.5; }
+  ol { padding-left:0; list-style:none; margin:0; }
+  li { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--kenar); font-size:14px; }
+  li:last-child { border-bottom:none; }
+  .ikon { width:20px; text-align:center; flex-shrink:0; }
+  .adres { font-family:ui-monospace,monospace; font-size:12px; color:var(--soluk); word-break:break-all; }
+  .adres a { color:var(--vurgu); }
+  .durum { min-height:20px; font-size:13px; margin-top:10px; word-break:break-word; }
+  .durum.hata { color:var(--hata); } .durum.ok { color:var(--ok); }
+  pre { background:var(--bg); border:1px solid var(--kenar); border-radius:8px; padding:10px; font-size:11px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; }
+  .gizli { display:none; }
+</style>
+</head>
+<body>
+<header>AGIChainAI Exchange — Setup <span id="ag-etiket" style="font-size:12px;color:var(--soluk);font-weight:400"></span></header>
+<main>
+  <section class="kart" id="bilgi-kart">
+    <h2>What does this page do?</h2>
+    <p class="ince">Deploys the exchange contracts <b>with your own wallet</b> (Factory, Router and your token; Base's official WETH is reused) and turns on the platform fee to your address.
+    Each step asks for a confirmation in MetaMask. You are the deployer; the full token supply and the fee-setter role stay with your address.
+    Your private key is never entered on this page. <b>This uses real ETH on Base mainnet.</b></p>
+    <p class="ince" id="zaten-kurulu" style="display:none;color:var(--ok)"></p>
+  </section>
+
+  <section class="kart">
+    <h2>1. Wallet</h2>
+    <div class="ince" id="cuzdan-bilgi">Not connected.</div>
+    <button id="baglan">Connect wallet</button>
+  </section>
+
+  <section class="kart">
+    <h2>2. Token</h2>
+    <label for="ad">Token name</label><input id="ad" value="AGI" maxlength="40">
+    <label for="sembol">Symbol</label><input id="sembol" value="AGI" maxlength="11">
+    <label for="arz">Total supply (tokens)</label><input id="arz" value="1000000000" inputmode="numeric">
+    <p class="ince">Fixed supply: after deployment no new tokens can be minted, frozen or taxed.</p>
+  </section>
+
+  <section class="kart">
+    <h2>3. Deploy</h2>
+    <ol id="adimlar"></ol>
+    <div class="ince" id="maliyet"></div>
+    <button id="basla" disabled>Start deployment</button>
+    <div class="durum" id="durum"></div>
+    <details id="teknik" class="gizli" style="margin-top:8px"><summary class="ince">Technical details (send this to Claude if something goes wrong)</summary><pre id="teknik-metin"></pre></details>
+  </section>
+
+  <section class="kart gizli" id="sonuc-kart">
+    <h2>Deployment complete</h2>
+    <p class="ince">Send these addresses to Claude so they can be connected to the exchange page (use the button below to copy).</p>
+    <pre id="sonuc"></pre>
+    <button id="kopyala" class="ikincil">Copy addresses</button>
+  </section>
+</main>
+
+<script src="ethers.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="kontratlar.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const K = window.DEX_KONTRATLAR;
+  const C = window.DEX_CONFIG || {};
+  const HEDEF = Number(C.chainId || 11155111);
+  const GAS_TAHMINI = 12_000_000n;
+  // Ölçülen gas kullanımı + %30 pay (WETH 604k, Factory 3.05M, Router 4.76M, Token 564k)
+  const GAS_LIMIT = { WETH9: 800_000n, Factory: 4_000_000n, Router: 6_200_000n, Token: 800_000n, setFeeTo: 100_000n };
+  const KASIF = { 11155111: "https://sepolia.etherscan.io", 84532: "https://sepolia.basescan.org", 1: "https://etherscan.io" }[HEDEF] || null;
+  const AG_ADI = { 8453: "Base", 11155111: "Sepolia", 84532: "Base Sepolia" }[HEDEF] || ("chainId " + HEDEF);
+  // Supported networks: added to MetaMask automatically if missing
+  const AGLAR = {
+    8453: { chainId: "0x2105", chainName: "Base", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://mainnet.base.org"], blockExplorerUrls: ["https://basescan.org"] },
+    84532: { chainId: "0x14a34", chainName: "Base Sepolia", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://sepolia.base.org"], blockExplorerUrls: ["https://sepolia.basescan.org"] },
+    11155111: { chainId: "0xaa36a7", chainName: "Sepolia", nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+             rpcUrls: ["https://ethereum-sepolia-rpc.publicnode.com"], blockExplorerUrls: ["https://sepolia.etherscan.io"] },
+  };
+  async function agaGec(hedef) {
+    const hex = "0x" + Number(hedef).toString(16);
+    try {
+      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+    } catch (e) {
+      const bilinmiyor = e && (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902) || /Unrecognized chain|not been added/i.test(e.message || ""));
+      if (!bilinmiyor || !AGLAR[hedef]) throw e;
+      await window.ethereum.request({ method: "wallet_addEthereumChain", params: [AGLAR[hedef]] });
+    }
+  }
+
+
+  const ADIMLAR = [
+    { anahtar: "weth", ad: "WETH (wrapped ETH)" },
+    { anahtar: "factory", ad: "Factory (pool factory)" },
+    { anahtar: "router", ad: "Router (swap router)" },
+    { anahtar: "token", ad: "Token" },
+    { anahtar: "komisyon", ad: "Turn on platform fee (0.05% to your address)" },
+    { anahtar: "dogrula", ad: "Check: are the contracts wired correctly?" },
+  ];
+
+  let provider, signer, hesap, kayit = {};
+
+  function durum(msj, tur) { $("durum").textContent = msj || ""; $("durum").className = "durum " + (tur || ""); }
+  const anahtar = () => `exchange-setup-${HEDEF}-${hesap}`;
+  function kaydet() { try { localStorage.setItem(anahtar(), JSON.stringify(kayit)); } catch (e) {} }
+  function yukle() { try { return JSON.parse(localStorage.getItem(anahtar()) || "{}"); } catch (e) { return {}; } }
+
+  function adimlariCiz(aktif) {
+    const ol = $("adimlar"); ol.innerHTML = "";
+    for (const a of ADIMLAR) {
+      const li = document.createElement("li");
+      const ikon = document.createElement("span"); ikon.className = "ikon";
+      const govde = document.createElement("div");
+      const baslik = document.createElement("div"); baslik.textContent = a.anahtar === "token" && kayit.sembol ? `Token (${kayit.sembol})` : a.anahtar === "weth" && kayit.wethHazir ? "WETH (network's official WETH, no deployment needed)" : a.ad;
+      govde.appendChild(baslik);
+      const adr = ["weth", "factory", "router", "token"].includes(a.anahtar) ? kayit[a.anahtar] : null;
+      if (a.anahtar === "dogrula") ikon.textContent = kayit.dogrulandi ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else if (a.anahtar === "komisyon") ikon.textContent = kayit.komisyon ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      else ikon.textContent = adr ? "✅" : aktif === a.anahtar ? "⏳" : "○";
+      if (adr && a.anahtar !== "dogrula") {
+        const d = document.createElement("div"); d.className = "adres";
+        if (KASIF) { const l = document.createElement("a"); l.href = `${KASIF}/address/${adr}`; l.target = "_blank"; l.rel = "noopener"; l.textContent = adr; d.appendChild(l); }
+        else d.textContent = adr;
+        govde.appendChild(d);
+      }
+      li.append(ikon, govde); ol.appendChild(li);
+    }
+  }
+
+  function hataMetni(e) {
+    if (e && (e.code === "ACTION_REJECTED" || e.code === 4001 || (e.info && e.info.error && e.info.error.code === 4001))) return "You rejected the confirmation. Tap again to continue where you left off.";
+    // Cüzdanlar asıl nedeni iç içe nesnelerde döndürür: hepsini topla
+    let ham = "";
+    try {
+      const parcalar = [e && e.shortMessage, e && e.reason, e && e.message,
+        e && e.info && e.info.error && e.info.error.message,
+        e && e.info && e.info.error && e.info.error.data && e.info.error.data.message,
+        e && e.error && e.error.message, e && e.data && e.data.message];
+      ham = parcalar.filter(Boolean).join(" | ") + " | " + JSON.stringify(e, (k, v) => (typeof v === "bigint" ? v.toString() : v));
+    } catch (_) { ham = String(e); }
+    if (/rejected|denied/i.test(ham) && /user/i.test(ham)) return "You rejected the confirmation. Tap again to continue where you left off.";
+    if (e && e.code === "INSUFFICIENT_FUNDS") ham += " insufficient funds";
+    if (e && (e.code === "NONCE_EXPIRED" || e.code === "REPLACEMENT_UNDERPRICED")) ham += " nonce";
+    if (e && (e.code === "NETWORK_ERROR" || e.code === "TIMEOUT")) ham += " network";
+    if (/insufficient funds|doesn't have enough funds|exceeds balance|gas \* price/i.test(ham)) return `Not enough ETH on ${AG_ADI} (or it has not arrived yet). Switch MetaMask to ${AG_ADI} and check your balance.`;
+    if (/nonce/i.test(ham)) return "Another transaction is pending in your wallet. Wait a few seconds and try again.";
+    if (/timeout|network|failed to fetch|disconnected/i.test(ham)) return "Network connection lost. Wait a few seconds and try again.";
+    if (/could not coalesce|Internal JSON-RPC error/i.test(ham))
+      return `MetaMask could not send the transaction (no details given). Check that the network is ${AG_ADI} and your balance, then tap "Continue setup" again. If it persists, restart MetaMask.`;
+    // Bilinmeyen hata: asıl nedeni göster (destek için)
+    const ic = (e && e.info && e.info.error && (e.info.error.data && e.info.error.data.message || e.info.error.message)) || (e && e.error && e.error.message) || "";
+    const kisa = (e && (e.shortMessage || e.message)) || String(e);
+    return "Error: " + (ic && !kisa.includes(ic) ? ic + " (" + kisa + ")" : kisa).slice(0, 260);
+  }
+
+  async function baglan() {
+    if (!window.ethereum) { durum("No wallet found. Open this page in the MetaMask app browser.", "hata"); return; }
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    let ag = await provider.getNetwork();
+    if (Number(ag.chainId) !== HEDEF) {
+      try {
+        await agaGec(HEDEF);
+        provider = new ethers.BrowserProvider(window.ethereum); ag = await provider.getNetwork();
+      } catch (e) { durum(`Switch your wallet to ${AG_ADI} and connect again.`, "hata"); return; }
+    }
+    signer = await provider.getSigner();
+    hesap = await signer.getAddress();
+    kayit = yukle();
+    // Ağın resmî WETH'i config'te verilmişse (ör. Base ana ağı) yeni WETH kurulmaz
+    if (C.weth && !C.router && !kayit.weth) { kayit.weth = ethers.getAddress(C.weth); kayit.wethHazir = true; kaydet(); }
+    if (kayit.ad) { $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; }
+    const bakiye = await provider.getBalance(hesap);
+    const fd = await provider.getFeeData();
+    const gp = fd.maxFeePerGas || fd.gasPrice || 0n;
+    const gerekli = GAS_TAHMINI * gp;
+    $("cuzdan-bilgi").textContent = `${hesap.slice(0, 8)}…${hesap.slice(-6)} · Bakiye: ${Number(ethers.formatEther(bakiye)).toFixed(4)} ETH`;
+    $("maliyet").textContent = `Estimated network fee: ~${Number(ethers.formatEther(gerekli)).toFixed(5)} ETH (depends on gas price).`;
+    $("baglan").textContent = "Connected"; $("baglan").disabled = true;
+    $("basla").disabled = false;
+    if (bakiye < gerekli) durum("Your balance looks lower than the estimated fee. You can still try; add a little more ETH if it fails.", "hata");
+    else durum("");
+    $("basla").textContent = kayit.factory && !kayit.dogrulandi ? "Continue setup" : kayit.dogrulandi ? "Setup already complete" : "Start deployment";
+    adimlariCiz();
+    if (kayit.dogrulandi) sonucGoster();
+  }
+
+  // İşlemi en sade hâliyle gönder: sadece from/to/data/gas. Ücret ve nonce'u MetaMask kendisi belirler.
+  let sonHamHata = null;
+  async function hamGonder(alanlar) {
+    const tx = { from: hesap, data: alanlar.data, gas: "0x" + alanlar.gas.toString(16) };
+    if (alanlar.to) tx.to = alanlar.to;
+    try {
+      return await window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
+    } catch (e) {
+      sonHamHata = e;
+      throw e;
+    }
+  }
+  async function makbuzBekle(hash) {
+    for (let i = 0; i < 180; i++) {          // en fazla ~6 dakika
+      const m = await provider.getTransactionReceipt(hash).catch(() => null);
+      if (m) {
+        if (m.status === 0) throw new Error("Transaction failed on-chain (revert). Hash: " + hash);
+        return m;
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    throw new Error("Transaction is taking too long. Check the explorer: " + hash);
+  }
+
+  async function kur(fabrikaAdi, args, adimAnahtari) {
+    if (kayit[adimAnahtari]) return kayit[adimAnahtari];
+    adimlariCiz(adimAnahtari);
+    durum(`Waiting for confirmation in MetaMask: ${ADIMLAR.find((a) => a.anahtar === adimAnahtari).ad}…`);
+    const f = new ethers.ContractFactory(K[fabrikaAdi].abi, K[fabrikaAdi].bytecode);
+    const { data } = await f.getDeployTransaction(...args);
+    const hash = await hamGonder({ data, gas: GAS_LIMIT[fabrikaAdi] });
+    durum("Transaction sent, waiting for it to be mined… (" + hash.slice(0, 12) + "…)");
+    const m = await makbuzBekle(hash);
+    if (!m.contractAddress) throw new Error("Could not get contract address. Hash: " + hash);
+    kayit[adimAnahtari] = ethers.getAddress(m.contractAddress);
+    kaydet(); adimlariCiz();
+    return kayit[adimAnahtari];
+  }
+
+  async function basla() {
+    const ad = $("ad").value.trim(), sembol = $("sembol").value.trim(), arzM = $("arz").value.trim();
+    if (!ad || !sembol) { durum("Token name and symbol cannot be empty.", "hata"); return; }
+    if (!/^[1-9][0-9]{0,14}$/.test(arzM)) { durum("Supply must be a whole number between 1 and 999 trillion.", "hata"); return; }
+    if (kayit.token && (kayit.ad !== ad || kayit.sembol !== sembol || kayit.arz !== arzM)) {
+      durum("The token is already deployed; its name and supply cannot be changed.", "hata");
+      $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; return;
+    }
+    try {
+      const b = await provider.getBalance(hesap);
+      if (b === 0n) { durum(`Your balance on ${AG_ADI} is 0. Fund the wallet with ETH on ${AG_ADI} and try again.`, "hata"); return; }
+    } catch (_) {}
+    kayit.ad = ad; kayit.sembol = sembol; kayit.arz = arzM; kaydet();
+    $("teknik").classList.add("gizli");
+    $("basla").disabled = true;
+    for (const id of ["ad", "sembol", "arz"]) $(id).disabled = true;
+    try {
+      const weth = await kur("WETH9", [], "weth");
+      const factory = await kur("Factory", [hesap], "factory");
+      await kur("Router", [factory, weth], "router");
+      await kur("Token", [ad, sembol, BigInt(arzM)], "token");
+
+      if (!kayit.komisyon) {
+        adimlariCiz("komisyon");
+        durum("Waiting for confirmation in MetaMask: turning on the platform fee…");
+        const veri = new ethers.Interface(K.Factory.abi).encodeFunctionData("setFeeTo", [hesap]);
+        const hash = await hamGonder({ to: kayit.factory, data: veri, gas: GAS_LIMIT.setFeeTo });
+        durum("Transaction sent, waiting…");
+        await makbuzBekle(hash);
+        kayit.komisyon = true; kaydet(); adimlariCiz();
+      }
+
+      adimlariCiz("dogrula"); durum("Running checks…");
+      const r = new ethers.Contract(kayit.router, K.Router.abi, provider);
+      const f = new ethers.Contract(kayit.factory, K.Factory.abi, provider);
+      const t = new ethers.Contract(kayit.token, K.Token.abi, provider);
+      const sorunlar = [];
+      if ((await r.factory()).toLowerCase() !== kayit.factory.toLowerCase()) sorunlar.push("Router → Factory link");
+      if ((await r.WETH()).toLowerCase() !== kayit.weth.toLowerCase()) sorunlar.push("Router → WETH link");
+      if ((await f.feeToSetter()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Factory fee-setter");
+      if ((await f.feeTo()).toLowerCase() !== hesap.toLowerCase()) sorunlar.push("Fee address");
+      if ((await t.balanceOf(hesap)) !== BigInt(arzM) * 10n ** 18n) sorunlar.push("Token balance");
+      if (sorunlar.length) throw new Error("Check failed: " + sorunlar.join(", "));
+      kayit.dogrulandi = true; kaydet(); adimlariCiz();
+      durum("Deployment complete and verified.", "ok");
+      sonucGoster();
+    } catch (e) {
+      durum(hataMetni(e), "hata");
+      try {
+        const ham = sonHamHata || e;
+        const ozet = { adim: (ADIMLAR.find((a) => !kayit[a.anahtar] && a.anahtar !== "dogrula") || {}).anahtar, chainId: HEDEF,
+          kod: ham && ham.code, mesaj: ham && ham.message, veri: ham && ham.data, ic: e && e.info && e.info.error };
+        $("teknik-metin").textContent = JSON.stringify(ozet, (k, v) => (typeof v === "bigint" ? v.toString() : v), 2).slice(0, 2000);
+        $("teknik").classList.remove("gizli");
+      } catch (_) {}
+      sonHamHata = null;
+      $("basla").disabled = false; $("basla").textContent = "Continue setup";
+      adimlariCiz();
+    }
+  }
+
+  function sonucGoster() {
+    const metin = JSON.stringify({ chainId: HEDEF, kurucu: hesap, komisyonAdresi: kayit.komisyon ? hesap : null, weth: kayit.weth, factory: kayit.factory, router: kayit.router,
+      token: { address: kayit.token, symbol: kayit.sembol, ad: kayit.ad, arz: kayit.arz } }, null, 2);
+    $("sonuc").textContent = metin;
+    $("sonuc-kart").classList.remove("gizli");
+    $("basla").disabled = true; $("basla").textContent = "Setup already complete";
+  }
+
+  $("kopyala").addEventListener("click", async () => {
+    const metin = $("sonuc").textContent;
+    try { await navigator.clipboard.writeText(metin); $("kopyala").textContent = "Copied ✓"; }
+    catch (e) {
+      const r = document.createRange(); r.selectNodeContents($("sonuc"));
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      $("kopyala").textContent = "Text selected — tap Copy";
+    }
+  });
+  $("baglan").addEventListener("click", () => baglan().catch((e) => durum(hataMetni(e), "hata")));
+  $("basla").addEventListener("click", basla);
+
+  $("ag-etiket").textContent = "· " + AG_ADI;
+  if (C.router) { $("zaten-kurulu").style.display = "block"; $("zaten-kurulu").textContent = "Note: The exchange is already set up on this site. Use this page only for a new deployment."; }
+  if (!K) durum("Could not load kontratlar.js.", "hata");
+  adimlariCiz();
+})();
+</script>
+</body>
+</html>

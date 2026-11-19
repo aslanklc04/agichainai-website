@@ -127,7 +127,7 @@
       const li = document.createElement("li");
       const ikon = document.createElement("span"); ikon.className = "ikon";
       const govde = document.createElement("div");
-      const baslik = document.createElement("div"); baslik.textContent = a.anahtar === "token" && kayit.sembol ? `Token (${kayit.sembol})` : a.ad;
+      const baslik = document.createElement("div"); baslik.textContent = a.anahtar === "token" && kayit.sembol ? `Token (${kayit.sembol})` : a.anahtar === "weth" && kayit.wethHazir ? "WETH (ağın resmî WETH'i, kurulum gerekmez)" : a.ad;
       govde.appendChild(baslik);
       const adr = ["weth", "factory", "router", "token"].includes(a.anahtar) ? kayit[a.anahtar] : null;
       if (a.anahtar === "dogrula") ikon.textContent = kayit.dogrulandi ? "✅" : aktif === a.anahtar ? "⏳" : "○";
@@ -183,6 +183,8 @@
     signer = await provider.getSigner();
     hesap = await signer.getAddress();
     kayit = yukle();
+    // Ağın resmî WETH'i config'te verilmişse (ör. Base ana ağı) yeni WETH kurulmaz
+    if (C.weth && !C.router && !kayit.weth) { kayit.weth = ethers.getAddress(C.weth); kayit.wethHazir = true; kaydet(); }
     if (kayit.ad) { $("ad").value = kayit.ad; $("sembol").value = kayit.sembol; $("arz").value = kayit.arz; }
     const bakiye = await provider.getBalance(hesap);
     const fd = await provider.getFeeData();
@@ -194,7 +196,7 @@
     $("basla").disabled = false;
     if (bakiye < gerekli) durum("Bakiye tahmini ücretin altında görünüyor. Yine de deneyebilirsiniz; yetmezse faucet'ten biraz daha alın.", "hata");
     else durum("");
-    $("basla").textContent = kayit.weth && !kayit.dogrulandi ? "Kuruluma devam et" : kayit.dogrulandi ? "Kurulum zaten tamam" : "Kurulumu başlat";
+    $("basla").textContent = kayit.factory && !kayit.dogrulandi ? "Kuruluma devam et" : kayit.dogrulandi ? "Kurulum zaten tamam" : "Kurulumu başlat";
     adimlariCiz();
     if (kayit.dogrulandi) sonucGoster();
   }
